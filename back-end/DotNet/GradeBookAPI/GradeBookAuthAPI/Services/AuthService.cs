@@ -144,6 +144,54 @@ namespace GradeBookAuthAPI.Services
             };
         }
 
+        public async Task<AuthResponse> LoginAsync(LoginRequest request)
+        {
+            // Find user by username
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Username == request.Username);
+
+            // Check if user exists
+            if (user == null)
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = "Invalid username or password"
+                };
+            }
+
+            // Verify password
+            var salt = Convert.FromBase64String(user.Salt);
+            bool isPasswordValid = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash, salt);
+
+            if (!isPasswordValid)
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = "Invalid username or password"
+                };
+            }
+
+            // Update last login time
+            user.LastLogin = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            // Generate JWT token
+            var token = GenerateJwtToken(user);
+
+            return new AuthResponse
+            {
+                Success = true,
+                Message = "Login successful",
+                Token = token,
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                Role = user.Role
+            };
+        }
+
         private bool IsValidEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))

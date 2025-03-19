@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using GradeBookAuthAPI.Data;
+﻿using GradeBookAuthAPI.Data;
 using GradeBookAuthAPI.DTOs.AuthDTOs;
 using GradeBookAuthAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -42,7 +40,48 @@ namespace GradeBookAuthAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Success = false, Message = "An error occurred during registration" });
+                // Include more detailed error information for debugging
+                Console.WriteLine($"Registration error: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "An error occurred during registration",
+                    // Only include these details during development
+                    Error = ex.Message,
+                    InnerError = ex.InnerException?.Message
+                });
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
+                }
+
+                var result = await _authService.LoginAsync(request);
+
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+
+                return BadRequest(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Success = false, Message = "An error occurred during login" });
             }
         }
 

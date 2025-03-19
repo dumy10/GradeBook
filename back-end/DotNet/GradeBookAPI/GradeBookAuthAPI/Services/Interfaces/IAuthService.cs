@@ -5,6 +5,6 @@ namespace GradeBookAuthAPI.Services.Interfaces
     public interface IAuthService
     {
         Task<AuthResponse> RegisterAsync(RegisterRequest request);
-        // Add other authentication methods as needed
+        Task<AuthResponse> LoginAsync(LoginRequest request);
     }
 }

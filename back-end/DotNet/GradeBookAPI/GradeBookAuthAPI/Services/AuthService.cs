@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using GradeBookAuthAPI.Data;
+﻿using GradeBookAuthAPI.Data;
 using GradeBookAuthAPI.DTOs.AuthDTOs;
 using GradeBookAuthAPI.Entities;
 using GradeBookAuthAPI.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace GradeBookAuthAPI.Services
 {
@@ -50,12 +46,39 @@ namespace GradeBookAuthAPI.Services
             }
 
             // Validate role
-            if (request.Role != "Teacher" && request.Role != "Student")
+            if (string.Compare(request.Role, "Teacher", StringComparison.OrdinalIgnoreCase) != 0 && string.Compare(request.Role, "Student", StringComparison.OrdinalIgnoreCase) != 0)
             {
                 return new AuthResponse
                 {
                     Success = false,
                     Message = "Invalid role. Must be 'Teacher' or 'Student'"
+                };
+            }
+
+            if (!IsValidEmail(request.Email))
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = "Invalid email format"
+                };
+            }
+
+            if (!IsValidName(request.FirstName))
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = "First name cannot be empty or contain whitespace"
+                };
+            }
+
+            if (!IsValidName(request.LastName))
+            {
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = "Last name cannot be empty or contain whitespace"
                 };
             }
 
@@ -70,7 +93,7 @@ namespace GradeBookAuthAPI.Services
                 Email = request.Email,
                 PasswordHash = passwordHash,
                 Salt = Convert.ToBase64String(salt),
-                Role = request.Role,
+                Role = request.Role.ToUpperInvariant(),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -121,26 +144,49 @@ namespace GradeBookAuthAPI.Services
             };
         }
 
+        private bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            try
+            {
+                // Use .NET's built-in email validation
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool IsValidName(string name)
+        {
+            return !string.IsNullOrWhiteSpace(name) && !name.Contains(" ");
+        }
+
+
         private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
+            var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET"));
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
+                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                 new Claim(ClaimTypes.Email, user.Email),
+                 new Claim(ClaimTypes.Name, user.Username),
+                 new Claim(ClaimTypes.Role, user.Role)
+             };
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(double.Parse(_configuration["Jwt:ExpiryInHours"])),
+                Expires = DateTime.UtcNow.AddHours(double.Parse(Environment.GetEnvironmentVariable("JWT_EXPIRY_HOURS"))),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"]
+                Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                Audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);

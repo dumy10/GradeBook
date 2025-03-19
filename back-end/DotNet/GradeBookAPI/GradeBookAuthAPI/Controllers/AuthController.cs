@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+using GradeBookAuthAPI.Data;
 using GradeBookAuthAPI.DTOs.AuthDTOs;
 using GradeBookAuthAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using GradeBookAuthAPI.Data;
 
 namespace GradeBookAuthAPI.Controllers
 {
@@ -14,13 +13,11 @@ namespace GradeBookAuthAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly ILogger<AuthController> _logger;
         private readonly AppDbContext _context;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger, AppDbContext context)
+        public AuthController(IAuthService authService, AppDbContext context)
         {
             _authService = authService;
-            _logger = logger;
             _context = context;
         }
 
@@ -38,7 +35,6 @@ namespace GradeBookAuthAPI.Controllers
 
                 if (result.Success)
                 {
-                    _logger.LogInformation($"User registered successfully: {request.Username}");
                     return Ok(result);
                 }
 
@@ -46,7 +42,6 @@ namespace GradeBookAuthAPI.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error during registration: {ex.Message}");
                 return StatusCode(500, new { Success = false, Message = "An error occurred during registration" });
             }
         }
@@ -89,6 +84,5 @@ namespace GradeBookAuthAPI.Controllers
                 });
             }
         }
-
     }
 }

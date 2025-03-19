@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Text;
 using GradeBookAuthAPI.Services.Interfaces;
 
 namespace GradeBookAuthAPI.Services

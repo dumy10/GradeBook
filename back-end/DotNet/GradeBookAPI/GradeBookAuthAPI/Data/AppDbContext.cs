@@ -1,7 +1,6 @@
 ﻿using GradeBookAuthAPI.Entities;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace GradeBookAuthAPI.Data
 {
     public class AppDbContext : DbContext

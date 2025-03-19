@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using GradeBookAuthAPI.DTOs.AuthDTOs;
+﻿using GradeBookAuthAPI.DTOs.AuthDTOs;
 
 namespace GradeBookAuthAPI.Services.Interfaces
 {

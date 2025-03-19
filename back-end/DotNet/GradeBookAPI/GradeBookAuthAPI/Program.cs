@@ -1,4 +1,4 @@
-using System.Text;
+using DotNetEnv;
 using GradeBookAuthAPI.Data;
 using GradeBookAuthAPI.Services;
 using GradeBookAuthAPI.Services.Interfaces;
@@ -6,22 +6,49 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
+
+// Load environment variables at the start
+Env.Load();
+
+// Validate required environment variables
+var requiredEnvVars = new[] {
+    "DB_HOST", "DB_PORT", "DB_NAME", "DB_USERNAME", "DB_PASSWORD",
+    "JWT_SECRET", "JWT_ISSUER", "JWT_AUDIENCE", "JWT_EXPIRY_HOURS"
+};
+
+foreach (var variable in requiredEnvVars)
+{
+    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(variable)))
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"Error: Required environment variable '{variable}' is not set. Check your .env file.");
+        Console.ResetColor();
+        Environment.Exit(1);
+    }
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Build connection string from environment variables
+var connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+                       $"Port={Environment.GetEnvironmentVariable("DB_PORT")};" +
+                       $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+                       $"Username={Environment.GetEnvironmentVariable("DB_USERNAME")};" +
+                       $"Password={Environment.GetEnvironmentVariable("DB_PASSWORD")}";
 
+// Add services to the container.
 builder.Services.AddControllers();
 
-// Add DbContext
+// Add DbContext with the connection string from environment variables
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // Add services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
-// Add JWT Authentication
+// Add JWT Authentication with environment variables
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -35,9 +62,10 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]))
+        ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+        ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")))
     };
 });
 
@@ -74,7 +102,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
 
 // Configure CORS
 builder.Services.AddCors(options =>

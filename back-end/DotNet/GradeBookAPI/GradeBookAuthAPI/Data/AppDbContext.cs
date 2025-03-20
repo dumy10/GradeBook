@@ -6,10 +6,9 @@ namespace GradeBookAuthAPI.Data
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
         public DbSet<User> Users { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
-
+        public DbSet<PasswordReset> PasswordResets { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -19,6 +18,9 @@ namespace GradeBookAuthAPI.Data
                 .HasOne(u => u.Profile)
                 .WithOne(p => p.User)
                 .HasForeignKey<UserProfile>(p => p.UserId);
+
+            modelBuilder.Entity<PasswordReset>()
+                .HasKey(p => p.ResetId);
 
             // Configure column names to match PostgreSQL snake_case convention
             modelBuilder.Entity<User>().ToTable("users");
@@ -43,6 +45,14 @@ namespace GradeBookAuthAPI.Data
             modelBuilder.Entity<UserProfile>().Property(p => p.ProfilePicture).HasColumnName("profile_picture");
             modelBuilder.Entity<UserProfile>().Property(p => p.CreatedAt).HasColumnName("created_at");
             modelBuilder.Entity<UserProfile>().Property(p => p.UpdatedAt).HasColumnName("updated_at");
+
+            modelBuilder.Entity<PasswordReset>().ToTable("password_resets");
+            modelBuilder.Entity<PasswordReset>().Property(r => r.ResetId).HasColumnName("reset_id");
+            modelBuilder.Entity<PasswordReset>().Property(r => r.UserId).HasColumnName("user_id");
+            modelBuilder.Entity<PasswordReset>().Property(r => r.Token).HasColumnName("token");
+            modelBuilder.Entity<PasswordReset>().Property(r => r.ExpiresAt).HasColumnName("expires_at");
+            modelBuilder.Entity<PasswordReset>().Property(r => r.UsedAt).HasColumnName("used_at");
+            modelBuilder.Entity<PasswordReset>().Property(r => r.CreatedAt).HasColumnName("created_at");
         }
     }
 }

@@ -123,5 +123,39 @@ namespace GradeBookAuthAPI.Controllers
                 });
             }
         }
+
+        // AuthController.cs
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { Success = false, Message = "Invalid email format" });
+            }
+
+            await _authService.ForgotPasswordAsync(request.Email);
+
+            // Always return success to prevent email enumeration
+            return Ok(new { Success = true, Message = "If the email exists, a password reset link has been sent" });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { Success = false, Message = "Invalid input" });
+            }
+
+            var result = await _authService.ResetPasswordAsync(request);
+
+            if (result)
+            {
+                return Ok(new { Success = true, Message = "Password reset successful" });
+            }
+
+            return BadRequest(new { Success = false, Message = "Invalid or expired token" });
+        }
+
     }
 }

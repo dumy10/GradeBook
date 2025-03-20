@@ -47,6 +47,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add JWT Authentication with environment variables
 builder.Services.AddAuthentication(options =>

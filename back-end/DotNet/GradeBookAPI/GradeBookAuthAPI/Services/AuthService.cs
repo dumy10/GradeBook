@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace GradeBookAuthAPI.Services
@@ -15,12 +16,14 @@ namespace GradeBookAuthAPI.Services
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IEmailService _emailService;
 
-        public AuthService(AppDbContext context, IConfiguration configuration, IPasswordHasher passwordHasher)
+        public AuthService(AppDbContext context, IConfiguration configuration, IPasswordHasher passwordHasher, IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
             _passwordHasher = passwordHasher;
+            _emailService = emailService;
         }
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
@@ -190,6 +193,76 @@ namespace GradeBookAuthAPI.Services
                 Email = user.Email,
                 Role = user.Role
             };
+        }
+
+        public async Task<bool> ForgotPasswordAsync(string email)
+        {
+            // Find user by email
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            // If user doesn't exist, still return true to prevent email enumeration
+            if (user == null)
+                return true;
+
+            // Generate a secure random token
+            var randomBytes = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+            var token = Convert.ToBase64String(randomBytes)
+                .Replace("/", "_")
+                .Replace("+", "-")
+                .Replace("=", "");
+
+            // Create password reset record
+            var passwordReset = new PasswordReset
+            {
+                UserId = user.UserId,
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Save to database
+            await _context.PasswordResets.AddAsync(passwordReset);
+            await _context.SaveChangesAsync();
+
+            // Generate reset link (in production, this would send an email)
+            string resetLink = await _emailService.SendPasswordResetEmailAsync(email, token);
+
+            return true;
+        }
+
+        public async Task<bool> ResetPasswordAsync(ResetPasswordRequest request)
+        {
+            // Find valid reset token
+            var passwordReset = await _context.PasswordResets
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r =>
+                    r.Token == request.Token &&
+                    r.UsedAt == null &&
+                    r.ExpiresAt > DateTime.UtcNow);
+
+            if (passwordReset == null)
+                return false;
+
+            var user = passwordReset.User;
+
+            // Update password
+            var salt = _passwordHasher.GenerateSalt();
+            var passwordHash = _passwordHasher.HashPassword(request.NewPassword, salt);
+
+            user.PasswordHash = passwordHash;
+            user.Salt = Convert.ToBase64String(salt);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            // Mark token as used
+            passwordReset.UsedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
         private bool IsValidEmail(string email)

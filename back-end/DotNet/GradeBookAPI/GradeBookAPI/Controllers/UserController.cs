@@ -78,7 +78,7 @@ namespace GradeBookAPI.Controllers
             {
                 var auditLog = new AuditLog
                 {
-                    UserId = 1, 
+                    UserId = 1,
                     Action = "GetProfile",
                     EntityType = "User",
                     EntityId = 0,
@@ -100,7 +100,7 @@ namespace GradeBookAPI.Controllers
                 {
                     var auditLog = new AuditLog
                     {
-                        UserId = 1, 
+                        UserId = 1,
                         Action = "UpdateProfile",
                         EntityType = "User",
                         EntityId = 0,
@@ -118,7 +118,7 @@ namespace GradeBookAPI.Controllers
                 {
                     var auditLog = new AuditLog
                     {
-                        UserId = 1, 
+                        UserId = 1,
                         Action = "UpdateProfile",
                         EntityType = "User",
                         EntityId = 0,
@@ -168,7 +168,7 @@ namespace GradeBookAPI.Controllers
             {
                 var auditLog = new AuditLog
                 {
-                    UserId = 1, 
+                    UserId = 1,
                     Action = "UpdateProfile",
                     EntityType = "User",
                     EntityId = 0,
@@ -190,7 +190,7 @@ namespace GradeBookAPI.Controllers
                 {
                     var auditLog = new AuditLog
                     {
-                        UserId = 1, 
+                        UserId = 1,
                         Action = "ChangePassword",
                         EntityType = "User",
                         EntityId = 0,
@@ -208,7 +208,7 @@ namespace GradeBookAPI.Controllers
                 {
                     var auditLog = new AuditLog
                     {
-                        UserId = 1, 
+                        UserId = 1,
                         Action = "ChangePassword",
                         EntityType = "User",
                         EntityId = 0,

@@ -17,7 +17,7 @@ namespace GradeBookAPI.Logger
             // Get the directory where the executable is located
             executingAssemblyPath = Path.GetDirectoryName(executingAssemblyPath) ?? string.Empty;
 
-            string logDirectory = Path.Combine(executingAssemblyPath, "ImagesProcessorLogs");
+            string logDirectory = Path.Combine(executingAssemblyPath, "GradeBookLogs");
 
             // Create a log file for the current execution of the program in order to avoid overwriting logs across different executions
             _logFile = Path.Combine(logDirectory, $"GradeBookAPI-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.log");

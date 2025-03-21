@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
+using GradeLogger = GradeBookAPI.Logger.Logger;
+
 namespace GradeBookAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -22,6 +24,7 @@ namespace GradeBookAPI.Controllers
 
                 if (nameIdentifier == null)
                 {
+                    GradeLogger.Instance.LogError("Unauthorized access to profile");
                     return Unauthorized(new { Success = false, Message = "Unauthorized" });
                 }
 
@@ -30,14 +33,19 @@ namespace GradeBookAPI.Controllers
 
                 if (profile == null)
                 {
+                    GradeLogger.Instance.LogError($"User not found for {userId}");
                     return NotFound(new { Success = false, Message = "User not found" });
                 }
 
+                GradeLogger.Instance.LogMessage($"Profile retrieved for {profile.Email}");
                 return Ok(new { Success = true, Profile = profile });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting profile: {ex.Message}");
+                GradeLogger.Instance.LogError($"Error retrieving profile: {ex.Message}");
+                GradeLogger.Instance.LogError($"Stack trace: {ex.StackTrace}");
+                GradeLogger.Instance.LogError($"Inner exception: {ex.InnerException?.Message}");
+
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred while retrieving the profile" });
             }
         }
@@ -49,6 +57,7 @@ namespace GradeBookAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    GradeLogger.Instance.LogError("Invalid input data received for UpdateProfile");
                     return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
                 }
 
@@ -56,6 +65,7 @@ namespace GradeBookAPI.Controllers
 
                 if (nameIdentifier == null)
                 {
+                    GradeLogger.Instance.LogError("Unauthorized access to profile");
                     return Unauthorized(new { Success = false, Message = "Unauthorized" });
                 }
 
@@ -64,14 +74,19 @@ namespace GradeBookAPI.Controllers
 
                 if (result)
                 {
+                    GradeLogger.Instance.LogMessage($"Profile updated for {userId}");
                     return Ok(new { Success = true, Message = "Profile updated successfully" });
                 }
 
+                GradeLogger.Instance.LogError($"Failed to update profile for {userId}");
                 return BadRequest(new { Success = false, Message = "Failed to update profile" });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating profile: {ex.Message}");
+                GradeLogger.Instance.LogError($"Error updating profile: {ex.Message}");
+                GradeLogger.Instance.LogError($"Stack trace: {ex.StackTrace}");
+                GradeLogger.Instance.LogError($"Inner exception: {ex.InnerException?.Message}");
+
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred while updating the profile" });
             }
         }
@@ -83,6 +98,7 @@ namespace GradeBookAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    GradeLogger.Instance.LogError("Invalid input data received for ChangePassword");
                     return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
                 }
 
@@ -90,6 +106,7 @@ namespace GradeBookAPI.Controllers
 
                 if (nameIdentifier == null)
                 {
+                    GradeLogger.Instance.LogError("Unauthorized access to profile");
                     return Unauthorized(new { Success = false, Message = "Unauthorized" });
                 }
 
@@ -98,14 +115,19 @@ namespace GradeBookAPI.Controllers
 
                 if (result)
                 {
+                    GradeLogger.Instance.LogMessage($"Password changed for {userId}");
                     return Ok(new { Success = true, Message = "Password changed successfully" });
                 }
 
+                GradeLogger.Instance.LogError($"Failed to change password for {userId}");
                 return BadRequest(new { Success = false, Message = "Current password is incorrect" });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error changing password: {ex.Message}");
+                GradeLogger.Instance.LogError($"Error changing password: {ex.Message}");
+                GradeLogger.Instance.LogError($"Stack trace: {ex.StackTrace}");
+                GradeLogger.Instance.LogError($"Inner exception: {ex.InnerException?.Message}");
+
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred while changing the password" });
             }
         }

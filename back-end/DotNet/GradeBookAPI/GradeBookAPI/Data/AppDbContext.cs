@@ -8,6 +8,10 @@ namespace GradeBookAPI.Data
         public DbSet<User> Users { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<PasswordReset> PasswordResets { get; set; }
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<Class> Classes { get; set; }
+        public DbSet<ClassEnrollment> ClassEnrollments { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -21,37 +25,66 @@ namespace GradeBookAPI.Data
             modelBuilder.Entity<PasswordReset>()
                 .HasKey(p => p.ResetId);
 
+            modelBuilder.Entity<Course>()
+                .HasKey(c => c.CourseId);
+
+            modelBuilder.Entity<Class>()
+                .HasKey(c => c.ClassId);
+            modelBuilder.Entity<Class>()
+                .HasOne(c => c.Course)
+                .WithMany(c => c.Classes)
+                .HasForeignKey(c => c.CourseId);
+            modelBuilder.Entity<Class>()
+                .HasOne(c => c.Teacher)
+                .WithMany()
+                .HasForeignKey(c => c.TeacherId);
+
+            modelBuilder.Entity<ClassEnrollment>()
+                .HasKey(e => e.EnrollmentId);
+            modelBuilder.Entity<ClassEnrollment>()
+                .HasOne(e => e.Class)
+                .WithMany(c => c.Enrollments)
+                .HasForeignKey(e => e.ClassId);
+            modelBuilder.Entity<ClassEnrollment>()
+                .HasOne(e => e.Student)
+                .WithMany()
+                .HasForeignKey(e => e.StudentId);
+
             // Configure column names to match PostgreSQL snake_case convention
-            modelBuilder.Entity<User>().ToTable("users");
-            modelBuilder.Entity<User>().Property(u => u.UserId).HasColumnName("user_id");
-            modelBuilder.Entity<User>().Property(u => u.Username).HasColumnName("username");
-            modelBuilder.Entity<User>().Property(u => u.Email).HasColumnName("email");
-            modelBuilder.Entity<User>().Property(u => u.PasswordHash).HasColumnName("password_hash");
-            modelBuilder.Entity<User>().Property(u => u.Salt).HasColumnName("salt");
-            modelBuilder.Entity<User>().Property(u => u.Role).HasColumnName("role");
-            modelBuilder.Entity<User>().Property(u => u.IsActive).HasColumnName("is_active");
-            modelBuilder.Entity<User>().Property(u => u.LastLogin).HasColumnName("last_login");
-            modelBuilder.Entity<User>().Property(u => u.CreatedAt).HasColumnName("created_at");
-            modelBuilder.Entity<User>().Property(u => u.UpdatedAt).HasColumnName("updated_at");
+            ConfigureTables(modelBuilder);
+        }
 
-            modelBuilder.Entity<UserProfile>().ToTable("user_profiles");
-            modelBuilder.Entity<UserProfile>().Property(p => p.ProfileId).HasColumnName("profile_id");
-            modelBuilder.Entity<UserProfile>().Property(p => p.UserId).HasColumnName("user_id");
-            modelBuilder.Entity<UserProfile>().Property(p => p.FirstName).HasColumnName("first_name");
-            modelBuilder.Entity<UserProfile>().Property(p => p.LastName).HasColumnName("last_name");
-            modelBuilder.Entity<UserProfile>().Property(p => p.Phone).HasColumnName("phone");
-            modelBuilder.Entity<UserProfile>().Property(p => p.Address).HasColumnName("address");
-            modelBuilder.Entity<UserProfile>().Property(p => p.ProfilePicture).HasColumnName("profile_picture");
-            modelBuilder.Entity<UserProfile>().Property(p => p.CreatedAt).HasColumnName("created_at");
-            modelBuilder.Entity<UserProfile>().Property(p => p.UpdatedAt).HasColumnName("updated_at");
+        private static void ConfigureTables(ModelBuilder modelBuilder)
+        {
+            // Get all the entity types
+            var entityTypes = modelBuilder.Model.GetEntityTypes();
+            foreach (var entityType in entityTypes)
+            {
+                // Get the table name and set it to snake_case
+                var tableName = ToSnakeCase(entityType.GetTableName());
+                entityType.SetTableName(tableName);
 
-            modelBuilder.Entity<PasswordReset>().ToTable("password_resets");
-            modelBuilder.Entity<PasswordReset>().Property(r => r.ResetId).HasColumnName("reset_id");
-            modelBuilder.Entity<PasswordReset>().Property(r => r.UserId).HasColumnName("user_id");
-            modelBuilder.Entity<PasswordReset>().Property(r => r.Token).HasColumnName("token");
-            modelBuilder.Entity<PasswordReset>().Property(r => r.ExpiresAt).HasColumnName("expires_at");
-            modelBuilder.Entity<PasswordReset>().Property(r => r.UsedAt).HasColumnName("used_at");
-            modelBuilder.Entity<PasswordReset>().Property(r => r.CreatedAt).HasColumnName("created_at");
+                // Get all the properties of the entity type
+                foreach (var property in entityType.GetProperties())
+                {
+                    // Get the column name and set it to snake_case
+                    var columnName = ToSnakeCase(property.Name);
+                    property.SetColumnName(columnName);
+                }
+            }
+        }
+
+        private static string ToSnakeCase(string? input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+            var startUnderscores = string.Empty;
+            for (int i = 0; i < input.Length && input[i] == '_'; i++)
+            {
+                startUnderscores += '_';
+            }
+
+            return startUnderscores + string.Concat(input.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x : x.ToString())).ToLower();
         }
     }
 }

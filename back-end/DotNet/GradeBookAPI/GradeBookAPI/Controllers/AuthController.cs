@@ -1,8 +1,10 @@
 ﻿using GradeBookAPI.Data;
 using GradeBookAPI.DTOs.AuthDTOs;
+using GradeBookAPI.Entities;
 using GradeBookAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 using GradeLogger = GradeBookAPI.Logger.Logger;
 
@@ -22,7 +24,17 @@ namespace GradeBookAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    GradeLogger.Instance.LogError("Invalid input data received for Register");
+                    var auditLog = new AuditLog
+                    {
+                        UserId = 1,
+                        Action = "Register",
+                        EntityType = "Auth",
+                        EntityId = 0,
+                        Details = JsonSerializer.Serialize(new { message = "Invalid input data received for Register" }),
+                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    GradeLogger.Instance.LogError(auditLog);
                     return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
                 }
 
@@ -30,18 +42,47 @@ namespace GradeBookAPI.Controllers
 
                 if (result.Success)
                 {
-                    GradeLogger.Instance.LogMessage($"User {result.Email} registered successfully");
+                    var auditLog = new AuditLog
+                    {
+                        UserId = 1,
+                        Action = "Register",
+                        EntityType = "Auth",
+                        EntityId = 0,
+                        Details = JsonSerializer.Serialize(new { message = "User registered successfully", email = result.Email }),
+                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    GradeLogger.Instance.LogMessage(auditLog);
                     return Ok(result);
                 }
 
-                GradeLogger.Instance.LogError($"Registration error: {result.Message}");
+                var auditLogError = new AuditLog
+                {
+                    UserId = 1,
+                    Action = "Register",
+                    EntityType = "Auth",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { error = result.Message }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                GradeLogger.Instance.LogError(auditLogError);
                 return BadRequest(result);
             }
             catch (Exception ex)
             {
-                GradeLogger.Instance.LogError($"Registration error: {ex.Message}");
-                GradeLogger.Instance.LogError($"Stack trace: {ex.StackTrace}");
-                GradeLogger.Instance.LogError($"Inner exception: {ex.InnerException?.Message}");
+                var auditLogEx = new AuditLog
+                {
+                    UserId = 1,
+                    Action = "Register",
+                    EntityType = "Auth",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                GradeLogger.Instance.LogError(auditLogEx);
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
@@ -58,7 +99,17 @@ namespace GradeBookAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    GradeLogger.Instance.LogError("Invalid input data received for Login");
+                    var auditLog = new AuditLog
+                    {
+                        UserId = 1,
+                        Action = "Login",
+                        EntityType = "Auth",
+                        EntityId = 0,
+                        Details = JsonSerializer.Serialize(new { message = "Invalid input data received for Login" }),
+                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    GradeLogger.Instance.LogError(auditLog);
                     return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
                 }
 
@@ -66,18 +117,46 @@ namespace GradeBookAPI.Controllers
 
                 if (result.Success)
                 {
-                    GradeLogger.Instance.LogMessage($"User {result.Email} logged in successfully");
+                    var auditLog = new AuditLog
+                    {
+                        UserId = 1,
+                        Action = "Login",
+                        EntityType = "Auth",
+                        EntityId = 0,
+                        Details = JsonSerializer.Serialize(new { message = "User logged in successfully", email = result.Email }),
+                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    GradeLogger.Instance.LogMessage(auditLog);
                     return Ok(result);
                 }
 
-                GradeLogger.Instance.LogError($"Login error: {result.Message}");
+                var auditLogError = new AuditLog
+                {
+                    UserId = 1,
+                    Action = "Login",
+                    EntityType = "Auth",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { error = result.Message }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                GradeLogger.Instance.LogError(auditLogError);
                 return BadRequest(result);
             }
             catch (Exception ex)
             {
-                GradeLogger.Instance.LogError($"Login error: {ex.Message}");
-                GradeLogger.Instance.LogError($"Stack trace: {ex.StackTrace}");
-                GradeLogger.Instance.LogError($"Inner exception: {ex.InnerException?.Message}");
+                var auditLogEx = new AuditLog
+                {
+                    UserId = 1,
+                    Action = "Login",
+                    EntityType = "Auth",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                GradeLogger.Instance.LogError(auditLogEx);
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred during login" });
             }
@@ -94,6 +173,19 @@ namespace GradeBookAPI.Controllers
                 {
                     var userCount = await _context.Users.CountAsync();
 
+                    var auditLog = new AuditLog
+                    {
+                        UserId = 1,
+                        Action = "TestConnection",
+                        EntityType = "Database",
+                        EntityId = 0,
+                        Details = JsonSerializer.Serialize(new { message = "Database connection successful" }),
+                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    GradeLogger.Instance.LogMessage(auditLog);
+
                     return Ok(new
                     {
                         Success = true,
@@ -103,7 +195,17 @@ namespace GradeBookAPI.Controllers
                 }
                 else
                 {
-                    GradeLogger.Instance.LogError("Could not connect to the database");
+                    var auditLog = new AuditLog
+                    {
+                        UserId = 1,
+                        Action = "TestConnection",
+                        EntityType = "Database",
+                        EntityId = 0,
+                        Details = JsonSerializer.Serialize(new { message = "Could not connect to the database" }),
+                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    GradeLogger.Instance.LogError(auditLog);
                     return StatusCode(StatusCodes.Status500InternalServerError, new
                     {
                         Success = false,
@@ -113,9 +215,17 @@ namespace GradeBookAPI.Controllers
             }
             catch (Exception ex)
             {
-                GradeLogger.Instance.LogError($"Database connection error: {ex.Message}");
-                GradeLogger.Instance.LogError($"Stack trace: {ex.StackTrace}");
-                GradeLogger.Instance.LogError($"Inner exception: {ex.InnerException?.Message}");
+                var auditLogEx = new AuditLog
+                {
+                    UserId = 1,
+                    Action = "TestConnection",
+                    EntityType = "Database",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                GradeLogger.Instance.LogError(auditLogEx);
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
@@ -131,13 +241,33 @@ namespace GradeBookAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                GradeLogger.Instance.LogError("Invalid input data received for ForgotPassword");
+                var auditLog = new AuditLog
+                {
+                    UserId = 1,
+                    Action = "ForgotPassword",
+                    EntityType = "Auth",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { message = "Invalid input data received for ForgotPassword" }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest(new { Success = false, Message = "Invalid email format" });
             }
 
             await _authService.ForgotPasswordAsync(request.Email);
 
-            GradeLogger.Instance.LogMessage($"Password reset link sent to {request.Email}");
+            var auditLogSuccess = new AuditLog
+            {
+                UserId = 1,
+                Action = "ForgotPassword",
+                EntityType = "Auth",
+                EntityId = 0,
+                Details = JsonSerializer.Serialize(new { message = "Password reset link sent", email = request.Email }),
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                CreatedAt = DateTime.UtcNow
+            };
+            GradeLogger.Instance.LogMessage(auditLogSuccess);
 
             // Always return success to prevent email enumeration
             return Ok(new { Success = true, Message = "If the email exists, a password reset link has been sent" });
@@ -148,7 +278,17 @@ namespace GradeBookAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                GradeLogger.Instance.LogError("Invalid input data received for ResetPassword");
+                var auditLog = new AuditLog
+                {
+                    UserId = 1,
+                    Action = "ResetPassword",
+                    EntityType = "Auth",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { message = "Invalid input data received for ResetPassword" }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest(new { Success = false, Message = "Invalid input" });
             }
 
@@ -156,11 +296,31 @@ namespace GradeBookAPI.Controllers
 
             if (result)
             {
-                GradeLogger.Instance.LogMessage($"Password reset successful");
+                var auditLogSuccess = new AuditLog
+                {
+                    UserId = 1,
+                    Action = "ResetPassword",
+                    EntityType = "Auth",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { message = "Password reset successful" }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                GradeLogger.Instance.LogMessage(auditLogSuccess);
                 return Ok(new { Success = true, Message = "Password reset successful" });
             }
 
-            GradeLogger.Instance.LogError($"Password reset failed");
+            var auditLogError = new AuditLog
+            {
+                UserId = 1,
+                Action = "ResetPassword",
+                EntityType = "Auth",
+                EntityId = 0,
+                Details = JsonSerializer.Serialize(new { error = "Password reset failed" }),
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                CreatedAt = DateTime.UtcNow
+            };
+            GradeLogger.Instance.LogError(auditLogError);
             return BadRequest(new { Success = false, Message = "Invalid or expired token" });
         }
     }

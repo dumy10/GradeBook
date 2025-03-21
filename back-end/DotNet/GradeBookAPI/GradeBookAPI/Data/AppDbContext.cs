@@ -11,6 +11,7 @@ namespace GradeBookAPI.Data
         public DbSet<Course> Courses { get; set; }
         public DbSet<Class> Classes { get; set; }
         public DbSet<ClassEnrollment> ClassEnrollments { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,6 +50,19 @@ namespace GradeBookAPI.Data
                 .HasOne(e => e.Student)
                 .WithMany()
                 .HasForeignKey(e => e.StudentId);
+
+            modelBuilder.Entity<AuditLog>()
+                .HasKey(a => a.LogId);
+
+            modelBuilder.Entity<AuditLog>()
+                .Property(a => a.Details)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<AuditLog>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId);
+
 
             // Configure column names to match PostgreSQL snake_case convention
             ConfigureTables(modelBuilder);

@@ -1,8 +1,10 @@
 ﻿using GradeBookAPI.DTOs.DataDTOs;
+using GradeBookAPI.Entities;
 using GradeBookAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json; 
 
 using GradeLogger = GradeBookAPI.Logger.Logger;
 
@@ -23,24 +25,64 @@ namespace GradeBookAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                GradeLogger.Instance.LogError("Invalid input data received for AddStudent");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = 1, 
+                    Action = "AddStudent", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid input data received for AddStudent" }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
             }
 
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for AddStudent. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "AddStudent", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
 
             var result = await _teacherService.AddStudentToClassAsync(teacherId, classId, request);
             if (!result)
             {
-                GradeLogger.Instance.LogError($"Unable to add student. Student:{request.StudentId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "AddStudent", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Unable to add student", studentId = request.StudentId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest("Unable to add student.");
             }
 
-            GradeLogger.Instance.LogMessage($"Student added successfully. Student:{request.StudentId}. Class:{classId}");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "AddStudent", 
+                EntityType = "Teacher", 
+                EntityId = classId, 
+                Details = JsonSerializer.Serialize(new { message = "Student added successfully", studentId = request.StudentId, classId = classId }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok("Student added successfully.");
         }
 
@@ -50,18 +92,48 @@ namespace GradeBookAPI.Controllers
         {
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for RemoveStudent. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "RemoveStudent", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
 
             var result = await _teacherService.RemoveStudentFromClassAsync(teacherId, classId, studentId);
             if (!result)
             {
-                GradeLogger.Instance.LogError($"Unable to remove student. Student:{studentId}. Class:{classId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "RemoveStudent", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Unable to remove student", studentId, classId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest("Unable to remove student.");
             }
 
-            GradeLogger.Instance.LogMessage($"Student removed successfully. Student:{studentId}. Class:{classId}");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "RemoveStudent", 
+                EntityType = "Teacher", 
+                EntityId = classId, 
+                Details = JsonSerializer.Serialize(new { message = "Student removed successfully", studentId = studentId, classId = classId }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok("Student removed successfully.");
         }
 
@@ -71,24 +143,64 @@ namespace GradeBookAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                GradeLogger.Instance.LogError("Invalid input data received for AddStudents");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = 1, 
+                    Action = "AddStudents", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid input data received for AddStudents" }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
             }
 
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for AddStudents. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "AddStudents", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
 
             var result = await _teacherService.AddStudentsToClassAsync(teacherId, classId, request);
             if (!result)
             {
-                GradeLogger.Instance.LogError("Unable to add some or all students.");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "AddStudents", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Unable to add some or all students" }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest("Unable to add some or all students.");
             }
 
-            GradeLogger.Instance.LogMessage("Students added successfully.");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "AddStudents", 
+                EntityType = "Teacher", 
+                EntityId = classId, 
+                Details = JsonSerializer.Serialize(new { message = "Students added successfully" }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok("Students added successfully.");
         }
 
@@ -98,24 +210,64 @@ namespace GradeBookAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                GradeLogger.Instance.LogError("Invalid input data received for RemoveStudents");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = 1, 
+                    Action = "RemoveStudents", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid input data received for RemoveStudents" }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
             }
 
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for RemoveStudents. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "RemoveStudents", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
 
             var result = await _teacherService.RemoveStudentsFromClassAsync(teacherId, classId, request);
             if (!result)
             {
-                GradeLogger.Instance.LogError("Unable to remove some or all students.");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "RemoveStudents", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Unable to remove some or all students" }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest("Unable to remove some or all students.");
             }
 
-            GradeLogger.Instance.LogMessage("Students removed successfully.");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "RemoveStudents", 
+                EntityType = "Teacher", 
+                EntityId = classId, 
+                Details = JsonSerializer.Serialize(new { message = "Students removed successfully" }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok("Students removed successfully.");
         }
 
@@ -125,13 +277,33 @@ namespace GradeBookAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                GradeLogger.Instance.LogError("Invalid input data received for CreateCourse");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = 1, 
+                    Action = "CreateCourse", 
+                    EntityType = "Teacher", 
+                    EntityId = 0, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid input data received for CreateCourse" }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
             }
 
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for CreateCourse. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "CreateCourse", 
+                    EntityType = "Teacher", 
+                    EntityId = 0, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
             try
@@ -140,19 +312,49 @@ namespace GradeBookAPI.Controllers
 
                 if (!result)
                 {
-                    GradeLogger.Instance.LogError("Course creation failed.");
+                    var auditLog = new AuditLog 
+                    { 
+                        UserId = teacherId, 
+                        Action = "CreateCourse", 
+                        EntityType = "Teacher", 
+                        EntityId = 0, 
+                        Details = JsonSerializer.Serialize(new { message = "Course creation failed" }), 
+                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                        CreatedAt = DateTime.UtcNow 
+                    };
+                    GradeLogger.Instance.LogError(auditLog);
                     return BadRequest("Course creation failed.");
                 }
             }
             catch (Exception ex)
             {
-                GradeLogger.Instance.LogError($"Course creation failed. Exception: {ex.Message}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "CreateCourse", 
+                    EntityType = "Teacher", 
+                    EntityId = 0, 
+                    Details = JsonSerializer.Serialize(new { message = "Course creation failed", exception = ex.Message }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
 
                 return BadRequest("Course creation failed.");
             }
 
 
-            GradeLogger.Instance.LogMessage("Course created successfully.");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "CreateCourse", 
+                EntityType = "Teacher", 
+                EntityId = 0, 
+                Details = JsonSerializer.Serialize(new { message = "Course created successfully" }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok("Course created successfully.");
         }
 
@@ -162,12 +364,32 @@ namespace GradeBookAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                GradeLogger.Instance.LogError("Invalid input data received for CreateClass");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = 1, 
+                    Action = "CreateClass", 
+                    EntityType = "Teacher", 
+                    EntityId = 0, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid input data received for CreateClass" }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
             }
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for CreateClass. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "CreateClass", 
+                    EntityType = "Teacher", 
+                    EntityId = 0, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
 
@@ -177,18 +399,48 @@ namespace GradeBookAPI.Controllers
 
                 if (!result)
                 {
-                    GradeLogger.Instance.LogError("Class creation failed. Verify that the course exists.");
+                    var auditLog = new AuditLog 
+                    { 
+                        UserId = teacherId, 
+                        Action = "CreateClass", 
+                        EntityType = "Teacher", 
+                        EntityId = 0, 
+                        Details = JsonSerializer.Serialize(new { message = "Class creation failed. Verify that the course exists" }), 
+                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                        CreatedAt = DateTime.UtcNow 
+                    };
+                    GradeLogger.Instance.LogError(auditLog);
                     return BadRequest("Class creation failed. Verify that the course exists.");
                 }
             }
             catch (Exception ex)
             {
-                GradeLogger.Instance.LogError($"Class creation failed. Exception: {ex.Message}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "CreateClass", 
+                    EntityType = "Teacher", 
+                    EntityId = 0, 
+                    Details = JsonSerializer.Serialize(new { message = "Class creation failed", exception = ex.Message }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return BadRequest("Class creation failed.");
             }
 
 
-            GradeLogger.Instance.LogMessage("Class created successfully.");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "CreateClass", 
+                EntityType = "Teacher", 
+                EntityId = 0, 
+                Details = JsonSerializer.Serialize(new { message = "Class created successfully" }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok("Class created successfully.");
         }
 
@@ -198,13 +450,33 @@ namespace GradeBookAPI.Controllers
         {
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for GetClasses. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "GetClasses", 
+                    EntityType = "Teacher", 
+                    EntityId = 0, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
 
             var classes = await _teacherService.GetClassesAsync(teacherId);
 
-            GradeLogger.Instance.LogMessage("Classes retrieved successfully.");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "GetClasses", 
+                EntityType = "Teacher", 
+                EntityId = 0, 
+                Details = JsonSerializer.Serialize(new { message = "Classes retrieved successfully" }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok(classes);
         }
 
@@ -214,13 +486,33 @@ namespace GradeBookAPI.Controllers
         {
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for GetCourses. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "GetAssignedCourses", 
+                    EntityType = "Teacher", 
+                    EntityId = 0, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
 
             var courses = await _teacherService.GetCoursesAsync(teacherId);
 
-            GradeLogger.Instance.LogMessage("Courses retrieved successfully.");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "GetAssignedCourses", 
+                EntityType = "Teacher", 
+                EntityId = 0, 
+                Details = JsonSerializer.Serialize(new { message = "Courses retrieved successfully" }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok(courses);
         }
 
@@ -230,13 +522,33 @@ namespace GradeBookAPI.Controllers
         {
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for GetCourses. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "GetCourses", 
+                    EntityType = "Teacher", 
+                    EntityId = 0, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
 
             var courses = await _teacherService.GetAllCoursesAsync();
 
-            GradeLogger.Instance.LogMessage("Courses retrieved successfully.");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "GetCourses", 
+                EntityType = "Teacher", 
+                EntityId = 0, 
+                Details = JsonSerializer.Serialize(new { message = "Courses retrieved successfully" }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok(courses);
         }
 
@@ -246,12 +558,32 @@ namespace GradeBookAPI.Controllers
         {
             if (!ValidateTeacherToken(out int teacherId))
             {
-                GradeLogger.Instance.LogError($"Invalid or expired token received for GetStudents. Teacher id: {teacherId}");
+                var auditLog = new AuditLog 
+                { 
+                    UserId = teacherId, 
+                    Action = "GetStudents", 
+                    EntityType = "Teacher", 
+                    EntityId = classId, 
+                    Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId }), 
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                    CreatedAt = DateTime.UtcNow 
+                };
+                GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized("Invalid or expired token.");
             }
 
             var students = await _teacherService.GetStudentsInClassAsync(teacherId, classId);
-            GradeLogger.Instance.LogMessage("Students retrieved successfully.");
+            var successLog = new AuditLog 
+            { 
+                UserId = teacherId, 
+                Action = "GetStudents", 
+                EntityType = "Teacher", 
+                EntityId = classId, 
+                Details = JsonSerializer.Serialize(new { message = "Students retrieved successfully" }), 
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                CreatedAt = DateTime.UtcNow 
+            };
+            GradeLogger.Instance.LogMessage(successLog);
             return Ok(students);
         }
 

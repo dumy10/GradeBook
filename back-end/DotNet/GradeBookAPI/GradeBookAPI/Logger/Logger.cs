@@ -1,4 +1,7 @@
-﻿using System.Reflection;
+﻿using GradeBookAPI.Data;
+using GradeBookAPI.Entities;
+using System.Reflection;
+using System.Text.Json;
 
 namespace GradeBookAPI.Logger
 {
@@ -8,40 +11,37 @@ namespace GradeBookAPI.Logger
         private static Logger? _instance = null;
         private static string _logFile = string.Empty;
 
+        private static IServiceProvider? _serviceProvider;
+
+        public static void InitializeServiceProvider(IServiceProvider provider)
+        {
+            _serviceProvider = provider;
+        }
+
         public static Logger Instance => _instance ??= new Logger();
 
         private Logger()
         {
             string executingAssemblyPath = Assembly.GetExecutingAssembly().Location;
-
-            // Get the directory where the executable is located
             executingAssemblyPath = Path.GetDirectoryName(executingAssemblyPath) ?? string.Empty;
-
             string logDirectory = Path.Combine(executingAssemblyPath, "GradeBookLogs");
-
-            // Create a log file for the current execution of the program in order to avoid overwriting logs across different executions
             _logFile = Path.Combine(logDirectory, $"GradeBookAPI-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.log");
-
             if (!Directory.Exists(logDirectory))
             {
                 Directory.CreateDirectory(logDirectory);
             }
-
             if (!File.Exists(_logFile))
             {
                 File.Create(_logFile).Dispose();
             }
-
-            LogMessage("Logger initialized.");
+            LogMessage(new AuditLog { EntityType = "Logger", Action = "Initialize", Details = JsonSerializer.Serialize(new { message = "Logger initialized." }), UserId = 1, EntityId = 0, IpAddress = "localhost", CreatedAt = DateTime.UtcNow });
         }
 
-        public void LogMessage(string message) => WriteLog("INFO", message);
+        public void LogMessage(AuditLog auditLog) => WriteLog("INFO", auditLog);
+        public void LogWarning(AuditLog auditLog) => WriteLog("WARN", auditLog);
+        public void LogError(AuditLog auditLog) => WriteLog("ERROR", auditLog);
 
-        public void LogWarning(string message) => WriteLog("WARN", message);
-
-        public void LogError(string message) => WriteLog("ERROR", message);
-
-        private static void WriteLog(string level, string message)
+        private static void WriteLog(string level, AuditLog auditLog)
         {
             if (string.IsNullOrWhiteSpace(_logFile))
             {
@@ -51,9 +51,29 @@ namespace GradeBookAPI.Logger
             lock (_lock)
             {
                 using StreamWriter writer = new(_logFile, true) { AutoFlush = true };
-                writer.WriteLine($"{{{level}}} {DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}");
+                writer.WriteLine($"{{{level}}} {DateTime.Now:yyyy-MM-dd HH:mm:ss} - {auditLog.EntityType} | {auditLog.Action} | {auditLog.Details}");
+            }
+
+            // Save auditLog to database by creating a scope and retrieving AppDbContext directly.
+            try
+            {
+                if (_serviceProvider != null)
+                {
+                    using var scope = _serviceProvider.CreateScope();
+                    using var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    context.AuditLogs.Add(auditLog);
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                lock (_lock)
+                {
+                    using StreamWriter writer = new(_logFile, true) { AutoFlush = true };
+                    writer.WriteLine($"{{ERROR}} {DateTime.Now:yyyy-MM-dd HH:mm:ss} - Failed to save AuditLog to database: {ex.Message}");
+                    writer.WriteLine($"{{ERROR}} {DateTime.Now:yyyy-MM-dd HH:mm:ss} - {ex.InnerException?.Message}");
+                }
             }
         }
-
     }
 }

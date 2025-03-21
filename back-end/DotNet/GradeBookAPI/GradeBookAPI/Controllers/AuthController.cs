@@ -4,6 +4,8 @@ using GradeBookAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using GradeLogger = GradeBookAPI.Logger.Logger;
+
 namespace GradeBookAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -20,6 +22,7 @@ namespace GradeBookAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    GradeLogger.Instance.LogError("Invalid input data received for Register");
                     return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
                 }
 
@@ -27,29 +30,23 @@ namespace GradeBookAPI.Controllers
 
                 if (result.Success)
                 {
+                    GradeLogger.Instance.LogMessage($"User {result.Email} registered successfully");
                     return Ok(result);
                 }
 
+                GradeLogger.Instance.LogError($"Registration error: {result.Message}");
                 return BadRequest(result);
             }
             catch (Exception ex)
             {
-                // Include more detailed error information for debugging
-                Console.WriteLine($"Registration error: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
-                }
+                GradeLogger.Instance.LogError($"Registration error: {ex.Message}");
+                GradeLogger.Instance.LogError($"Stack trace: {ex.StackTrace}");
+                GradeLogger.Instance.LogError($"Inner exception: {ex.InnerException?.Message}");
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     Success = false,
                     Message = "An error occurred during registration",
-                    // Only include these details during development
-                    Error = ex.Message,
-                    InnerError = ex.InnerException?.Message
                 });
             }
         }
@@ -61,6 +58,7 @@ namespace GradeBookAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    GradeLogger.Instance.LogError("Invalid input data received for Login");
                     return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
                 }
 
@@ -68,13 +66,19 @@ namespace GradeBookAPI.Controllers
 
                 if (result.Success)
                 {
+                    GradeLogger.Instance.LogMessage($"User {result.Email} logged in successfully");
                     return Ok(result);
                 }
 
+                GradeLogger.Instance.LogError($"Login error: {result.Message}");
                 return BadRequest(result);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                GradeLogger.Instance.LogError($"Login error: {ex.Message}");
+                GradeLogger.Instance.LogError($"Stack trace: {ex.StackTrace}");
+                GradeLogger.Instance.LogError($"Inner exception: {ex.InnerException?.Message}");
+
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred during login" });
             }
         }
@@ -99,6 +103,7 @@ namespace GradeBookAPI.Controllers
                 }
                 else
                 {
+                    GradeLogger.Instance.LogError("Could not connect to the database");
                     return StatusCode(StatusCodes.Status500InternalServerError, new
                     {
                         Success = false,
@@ -108,12 +113,14 @@ namespace GradeBookAPI.Controllers
             }
             catch (Exception ex)
             {
+                GradeLogger.Instance.LogError($"Database connection error: {ex.Message}");
+                GradeLogger.Instance.LogError($"Stack trace: {ex.StackTrace}");
+                GradeLogger.Instance.LogError($"Inner exception: {ex.InnerException?.Message}");
+
                 return StatusCode(StatusCodes.Status500InternalServerError, new
                 {
                     Success = false,
                     Message = "Database connection failed",
-                    Error = ex.Message,
-                    InnerError = ex.InnerException?.Message
                 });
             }
         }
@@ -124,10 +131,13 @@ namespace GradeBookAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
+                GradeLogger.Instance.LogError("Invalid input data received for ForgotPassword");
                 return BadRequest(new { Success = false, Message = "Invalid email format" });
             }
 
             await _authService.ForgotPasswordAsync(request.Email);
+
+            GradeLogger.Instance.LogMessage($"Password reset link sent to {request.Email}");
 
             // Always return success to prevent email enumeration
             return Ok(new { Success = true, Message = "If the email exists, a password reset link has been sent" });
@@ -138,6 +148,7 @@ namespace GradeBookAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
+                GradeLogger.Instance.LogError("Invalid input data received for ResetPassword");
                 return BadRequest(new { Success = false, Message = "Invalid input" });
             }
 
@@ -145,11 +156,12 @@ namespace GradeBookAPI.Controllers
 
             if (result)
             {
+                GradeLogger.Instance.LogMessage($"Password reset successful");
                 return Ok(new { Success = true, Message = "Password reset successful" });
             }
 
+            GradeLogger.Instance.LogError($"Password reset failed");
             return BadRequest(new { Success = false, Message = "Invalid or expired token" });
         }
-
     }
 }

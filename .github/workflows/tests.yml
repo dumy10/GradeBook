@@ -1,0 +1,49 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+    test-backend:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up .NET Core
+              uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: "8.x"
+
+            - name: Build with dotnet
+              run: dotnet build back-end\DotNet\GradeBookAPI\GradeBookAPI\GradeBookAPI.csproj --configuration Release
+
+            - name: Test with dotnet
+              run: dotnet test back-end\DotNet\GradeBookAPI\GradeBookAPI.Tests\GradeBookAPI.Tests.csproj --configuration Release
+
+
+    test-frontend:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+
+        steps: 
+            - uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: '20'
+
+            - name: Install dependencies
+              run: npm install front-end\gradebook
+
+            - name: Test with npm
+              run: npm test front-end\gradebook

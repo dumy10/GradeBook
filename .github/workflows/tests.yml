@@ -23,10 +23,10 @@ jobs:
                 dotnet-version: "8.x"
 
             - name: Build with dotnet
-              run: dotnet build back-end\DotNet\GradeBookAPI\GradeBookAPI\GradeBookAPI.csproj --configuration Release
+              run: dotnet build back-end/DotNet/GradeBookAPI/GradeBookAPI/GradeBookAPI.csproj --configuration Release
 
             - name: Test with dotnet
-              run: dotnet test back-end\DotNet\GradeBookAPI\GradeBookAPI.Tests\GradeBookAPI.Tests.csproj --configuration Release
+              run: dotnet test back-end/DotNet/GradeBookAPI/GradeBookAPI.Tests/GradeBookAPI.Tests.csproj --configuration Release
 
 
     test-frontend:
@@ -43,7 +43,7 @@ jobs:
                 node-version: '20'
 
             - name: Install dependencies
-              run: npm install front-end\gradebook
+              run: npm install --prefix front-end/gradebook
 
             - name: Test with npm
-              run: npm test front-end\gradebook
+              run: npm test --prefix front-end/gradebook

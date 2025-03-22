@@ -26,7 +26,7 @@ jobs:
               run: dotnet build back-end/DotNet/GradeBookAPI/GradeBookAPI/GradeBookAPI.csproj --configuration Release
 
             - name: Test with dotnet
-              run: dotnet test back-end/DotNet/GradeBookAPI/GradeBookAPI.Tests/GradeBookAPI.Tests.csproj --configuration Release
+              run: dotnet test back-end/DotNet/GradeBookAPI/GradeBookAPITests/GradeBookAPITests.csproj --configuration Release
 
 
     test-frontend:

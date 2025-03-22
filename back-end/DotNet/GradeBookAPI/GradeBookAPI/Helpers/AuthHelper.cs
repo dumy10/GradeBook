@@ -4,7 +4,7 @@ namespace GradeBookAPI.Helpers
 {
     public static class AuthHelper
     {
-        private enum Role
+        public enum Role
         {
             TEACHER,
             STUDENT

@@ -1,5 +1,6 @@
 using GradeBookAPI.Data;
 using GradeBookAPI.Entities;
+using GradeBookAPI.Helpers;
 using GradeBookAPI.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,10 @@ namespace GradeBookAPI.Services.Concretes
                 if (!await _context.Users.AnyAsync(s => s.UserId == grade.StudentId))
                     throw new ArgumentException("Student does not exist.");
 
+                // Check that the role of the user is student
+                if (!await _context.Users.AnyAsync(s => s.UserId == grade.StudentId && s.Role == AuthHelper.Role.STUDENT.ToString()))
+                    throw new ArgumentException("The provided user is not a student.");
+
                 // Check that the student belongs to the class of the assignment
                 var student = await _context.Users.FirstOrDefaultAsync(s => s.UserId == grade.StudentId);
                 var assignment = await _context.Assignments.FirstOrDefaultAsync(a => a.AssignmentId == grade.AssignmentId);
@@ -29,7 +34,7 @@ namespace GradeBookAPI.Services.Concretes
 
                 // The Points have to be between the assignment min and max
                 if (grade.Points < assignment!.MinPoints || grade.Points > assignment.MaxPoints)
-                    throw new ArgumentException("Points have to be between the assignment min and max.");
+                    throw new ArgumentException($"Points have to be between the assignment minimum: {assignment.MinPoints} and maximum: {assignment.MaxPoints}");
 
                 await _context.Grades.AddAsync(grade);
                 await _context.SaveChangesAsync();

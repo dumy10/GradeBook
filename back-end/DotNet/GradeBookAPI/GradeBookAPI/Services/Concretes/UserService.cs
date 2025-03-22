@@ -107,6 +107,42 @@ namespace GradeBookAPI.Services.Concretes
             return true;
         }
 
+        public async Task<UserDetailsDto?> GetUserDetailsAsync(int userId)
+        {
+            var users = await _context.Users
+                .Include(u => u.Profile)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (users == null)
+            {
+                return null;
+            }
+
+            return new UserDetailsDto
+            {
+                UserId = users.UserId,
+                Email = users.Email,
+                FirstName = users.Profile!.FirstName,
+                LastName = users.Profile!.LastName,
+                Role = users.Role.ToUpperInvariant()
+            };
+        }
+
+        public async Task<IEnumerable<UserDetailsDto>> GetAllUsersDetailsAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Profile)
+                .Select(u => new UserDetailsDto
+                {
+                    UserId = u.UserId,
+                    Email = u.Email,
+                    FirstName = u.Profile!.FirstName,
+                    LastName = u.Profile!.LastName,
+                    Role = u.Role.ToUpperInvariant()
+                })
+                .ToListAsync();
+        }
+
         private static bool IsValidPhoneNumber(string? phoneNumber)
         {
             if (string.IsNullOrEmpty(phoneNumber)) // The Phone number is not required so we can return true if it is empty or null
@@ -124,5 +160,6 @@ namespace GradeBookAPI.Services.Concretes
 
         [GeneratedRegex(@"\s+")] // This attribute is used to generate the regex pattern for the WhiteSpaceRegexPattern method. This is generated at compile time.
         private static partial Regex WhiteSpaceRegexPattern();
+
     }
 }

@@ -105,6 +105,98 @@ namespace GradeBookAPI.Controllers
             }
         }
 
+        // POST: api/Grade/batch
+        [HttpPost("batch")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> CreateGradesBatch([FromBody] List<CreateGradeRequest> requests)
+        {
+            if (!AuthHelper.IsTeacher(HttpContext, out int teacherId))
+            {
+                var auditLog = new AuditLog
+                {
+                    UserId = teacherId,
+                    Action = "CreateGradesBatch",
+                    EntityType = "Grade",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in CreateGradesBatch" }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                GradeLogger.Instance.LogError(auditLog);
+
+                return Unauthorized(new { Success = false, Message = "Unauthorized" });
+            }
+
+            if (requests == null || requests.Count == 0)
+            {
+                var auditLog = new AuditLog
+                {
+                    UserId = teacherId,
+                    Action = "CreateGradesBatch",
+                    EntityType = "Grade",
+                    EntityId = 0,
+                    Details = JsonSerializer.Serialize(new { message = "No grade requests provided." }),
+                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    CreatedAt = DateTime.UtcNow
+                };
+                GradeLogger.Instance.LogError(auditLog);
+
+                return BadRequest(new { Success = false, Message = "No grade requests provided." });
+            }
+
+            var createdGrades = new List<Grade>();
+            var errors = new List<object>();
+
+            foreach (var req in requests)
+            {
+                var grade = new Grade
+                {
+                    AssignmentId = req.AssignmentId,
+                    StudentId = req.StudentId,
+                    Points = req.Points,
+                    Comment = req.Comment,
+                    GradedBy = teacherId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                try
+                {
+                    var created = await _gradeService.CreateGradeAsync(grade);
+                    createdGrades.Add(created);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(new { Request = req, Error = ex.Message });
+
+                    var errorLog = new AuditLog
+                    {
+                        UserId = teacherId,
+                        Action = "CreateGradesBatch",
+                        EntityType = "Grade",
+                        EntityId = 0,
+                        Details = JsonSerializer.Serialize(new { message = "Error creating grade", exception = ex.Message, innerException = ex.InnerException?.Message }),
+                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    GradeLogger.Instance.LogError(errorLog);
+                }
+            }
+
+            var response = new
+            {
+                Success = true,
+                CreatedCount = createdGrades.Count,
+                Errors = errors,
+                Grades = createdGrades
+            };
+
+            return Ok(response);
+        }
+
         // GET: api/Grade/{id}
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

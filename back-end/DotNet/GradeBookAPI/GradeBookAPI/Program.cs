@@ -50,6 +50,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITeacherService, TeacherService>();
 
 // Add JWT Authentication with environment variables
 builder.Services.AddAuthentication(options =>
@@ -117,6 +118,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Provide the service provider to the Logger:
+GradeBookAPI.Logger.Logger.InitializeServiceProvider(app.Services);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -36,5 +36,6 @@ namespace GradeBookAPI.Entities
         public virtual Course? Course { get; set; }
         public virtual User? Teacher { get; set; }
         public virtual ICollection<ClassEnrollment>? Enrollments { get; set; }
+        public virtual ICollection<Assignment>? Assignments { get; set; }
     }
 }

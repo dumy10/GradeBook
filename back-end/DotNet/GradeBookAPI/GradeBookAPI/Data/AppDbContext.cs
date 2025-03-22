@@ -12,6 +12,10 @@ namespace GradeBookAPI.Data
         public DbSet<Class> Classes { get; set; }
         public DbSet<ClassEnrollment> ClassEnrollments { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<AssignmentType> AssignmentTypes { get; set; }
+        public DbSet<Assignment> Assignments { get; set; }
+        public DbSet<Grade> Grades { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,12 +26,46 @@ namespace GradeBookAPI.Data
                 .HasOne(u => u.Profile)
                 .WithOne(p => p.User)
                 .HasForeignKey<UserProfile>(p => p.UserId);
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+            modelBuilder.Entity<User>()
+                .Property(u => u.CreatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<User>()
+                .Property(u => u.UpdatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<User>()
+                .Property(u => u.IsActive)
+                .HasDefaultValue(true);
 
             modelBuilder.Entity<PasswordReset>()
                 .HasKey(p => p.ResetId);
+            modelBuilder.Entity<PasswordReset>()
+                .HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId);
+            modelBuilder.Entity<PasswordReset>()
+                .Property(p => p.CreatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<PasswordReset>()
+                .Property(p => p.UsedAt)
+                .HasDefaultValue(null);
 
             modelBuilder.Entity<Course>()
                 .HasKey(c => c.CourseId);
+            modelBuilder.Entity<Course>()
+                .HasIndex(c => c.CourseCode)
+                .IsUnique();
+            modelBuilder.Entity<Course>()
+                .Property(c => c.CreatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<Course>()
+                .Property(c => c.UpdatedAt)
+                .HasDefaultValueSql("now()");
 
             modelBuilder.Entity<Class>()
                 .HasKey(c => c.ClassId);
@@ -39,6 +77,12 @@ namespace GradeBookAPI.Data
                 .HasOne(c => c.Teacher)
                 .WithMany()
                 .HasForeignKey(c => c.TeacherId);
+            modelBuilder.Entity<Class>()
+                .Property(c => c.CreatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<Class>()
+                .Property(c => c.UpdatedAt)
+                .HasDefaultValueSql("now()");
 
             modelBuilder.Entity<ClassEnrollment>()
                 .HasKey(e => e.EnrollmentId);
@@ -50,19 +94,75 @@ namespace GradeBookAPI.Data
                 .HasOne(e => e.Student)
                 .WithMany()
                 .HasForeignKey(e => e.StudentId);
+            modelBuilder.Entity<ClassEnrollment>()
+                .Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<ClassEnrollment>()
+                .Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("now()");
 
             modelBuilder.Entity<AuditLog>()
                 .HasKey(a => a.LogId);
-
             modelBuilder.Entity<AuditLog>()
                 .Property(a => a.Details)
                 .HasColumnType("jsonb");
-
             modelBuilder.Entity<AuditLog>()
                 .HasOne(a => a.User)
                 .WithMany()
                 .HasForeignKey(a => a.UserId);
+            modelBuilder.Entity<AuditLog>()
+                .Property(a => a.CreatedAt)
+                .HasDefaultValueSql("now()");
 
+            modelBuilder.Entity<AssignmentType>()
+                .HasKey(t => t.TypeId);
+            modelBuilder.Entity<AssignmentType>()
+                .Property(t => t.CreatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<AssignmentType>()
+                .Property(t => t.UpdatedAt)
+                .HasDefaultValueSql("now()");
+
+            modelBuilder.Entity<Assignment>()
+                .HasKey(a => a.AssignmentId);
+            modelBuilder.Entity<Assignment>()
+                .HasOne(a => a.Class)
+                .WithMany(c => c.Assignments)
+                .HasForeignKey(a => a.ClassId);
+            modelBuilder.Entity<Assignment>()
+                .HasOne(a => a.AssignmentType)
+                .WithMany()
+                .HasForeignKey(a => a.TypeId);
+            modelBuilder.Entity<Assignment>()
+                .Property(a => a.CreatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<Assignment>()
+                .Property(a => a.UpdatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<Assignment>()
+                .Property(a => a.IsPublished)
+                .HasDefaultValue(false);
+
+            modelBuilder.Entity<Grade>()
+                .HasKey(g => g.GradeId);
+            modelBuilder.Entity<Grade>()
+                .HasOne(g => g.Assignment)
+                .WithMany()
+                .HasForeignKey(g => g.AssignmentId);
+            modelBuilder.Entity<Grade>()
+                .HasOne(g => g.Student)
+                .WithMany()
+                .HasForeignKey(g => g.StudentId);
+            modelBuilder.Entity<Grade>()
+                .HasOne(g => g.Grader)
+                .WithMany()
+                .HasForeignKey(g => g.GradedBy);
+            modelBuilder.Entity<Grade>()
+                .Property(g => g.CreatedAt)
+                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<Grade>()
+                .Property(g => g.UpdatedAt)
+                .HasDefaultValueSql("now()");
 
             // Configure column names to match PostgreSQL snake_case convention
             ConfigureTables(modelBuilder);

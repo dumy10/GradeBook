@@ -17,6 +17,17 @@ namespace GradeBookAPI.Controllers
     {
         private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
+        private AuditLog AuditLog => new()
+        {
+            UserId = 1,
+            EntityType = "User",
+            EntityId = 0,
+            IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            Action = "UserController",
+            Details = JsonSerializer.Serialize(new { message = "UserController invoked" }),
+            CreatedAt = DateTime.UtcNow
+        };
+
         [HttpGet("profile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -28,16 +39,12 @@ namespace GradeBookAPI.Controllers
             {
                 if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = 1,
-                        Action = "GetProfile",
-                        EntityType = "User",
-                        EntityId = 0,
-                        Details = JsonSerializer.Serialize(new { message = "Unauthorized access to profile" }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = userId;
+                    auditLog.Action = "GetProfile";
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access to profile" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
+
                     GradeLogger.Instance.LogError(auditLog);
                     return Unauthorized(new { Success = false, Message = "Unauthorized" });
                 }
@@ -46,30 +53,22 @@ namespace GradeBookAPI.Controllers
 
                 if (profile == null)
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = userId,
-                        Action = "GetProfile",
-                        EntityType = "User",
-                        EntityId = userId,
-                        Details = JsonSerializer.Serialize(new { message = "User not found", userId }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = userId;
+                    auditLog.Action = "GetProfile";
+                    auditLog.EntityId = userId;
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "User not found", userId });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLog);
                     return NotFound(new { Success = false, Message = "User not found" });
                 }
 
-                var auditLogSuccess = new AuditLog
-                {
-                    UserId = userId,
-                    Action = "GetProfile",
-                    EntityType = "User",
-                    EntityId = userId,
-                    Details = JsonSerializer.Serialize(new { message = $"Profile retrieved for {userId}" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogSuccess = AuditLog;
+                auditLogSuccess.UserId = userId;
+                auditLogSuccess.Action = "GetProfile";
+                auditLogSuccess.EntityId = userId;
+                auditLogSuccess.Details = JsonSerializer.Serialize(new { message = $"Profile retrieved for {userId}" });
+                auditLogSuccess.CreatedAt = DateTime.UtcNow;
 
                 GradeLogger.Instance.LogMessage(auditLogSuccess);
 
@@ -77,16 +76,10 @@ namespace GradeBookAPI.Controllers
             }
             catch (Exception ex)
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = 1,
-                    Action = "GetProfile",
-                    EntityType = "User",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.Action = "GetProfile";
+                auditLog.Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message });
+                auditLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLog);
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred while retrieving the profile" });
             }
@@ -103,16 +96,11 @@ namespace GradeBookAPI.Controllers
             {
                 if (!AuthHelper.IsAuthenticated(HttpContext, out int authenticatedUser))
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = authenticatedUser,
-                        Action = "GetUserDetails",
-                        EntityType = "User",
-                        EntityId = 0,
-                        Details = JsonSerializer.Serialize(new { message = "Unauthorized access to user details" }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = authenticatedUser;
+                    auditLog.Action = "GetUserDetails";
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access to user details" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLog);
                     return Unauthorized(new { Success = false, Message = "Unauthorized" });
                 }
@@ -121,30 +109,22 @@ namespace GradeBookAPI.Controllers
 
                 if (userDetails == null)
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = authenticatedUser,
-                        Action = "GetUserDetails",
-                        EntityType = "User",
-                        EntityId = authenticatedUser,
-                        Details = JsonSerializer.Serialize(new { message = "User not found", userId }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = authenticatedUser;
+                    auditLog.Action = "GetUserDetails";
+                    auditLog.EntityId = authenticatedUser;
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "User not found", userId });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLog);
                     return NotFound(new { Success = false, Message = "User not found" });
                 }
 
-                var auditLogSuccess = new AuditLog
-                {
-                    UserId = authenticatedUser,
-                    Action = "GetUserDetails",
-                    EntityType = "User",
-                    EntityId = authenticatedUser,
-                    Details = JsonSerializer.Serialize(new { message = $"User details retrieved for {userId} by {authenticatedUser}" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogSuccess = AuditLog;
+                auditLogSuccess.UserId = authenticatedUser;
+                auditLogSuccess.Action = "GetUserDetails";
+                auditLogSuccess.EntityId = authenticatedUser;
+                auditLogSuccess.Details = JsonSerializer.Serialize(new { message = $"User details retrieved for {userId} by {authenticatedUser}" });
+                auditLogSuccess.CreatedAt = DateTime.UtcNow;
 
                 GradeLogger.Instance.LogMessage(auditLogSuccess);
 
@@ -152,16 +132,10 @@ namespace GradeBookAPI.Controllers
             }
             catch (Exception ex)
             {
-                var errorLog = new AuditLog
-                {
-                    UserId = 1,
-                    Action = "GetUserDetails",
-                    EntityType = "User",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var errorLog = AuditLog;
+                errorLog.Action = "GetUserDetails";
+                errorLog.Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message });
+                errorLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(errorLog);
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred while retrieving the user details" });
             }
@@ -178,60 +152,41 @@ namespace GradeBookAPI.Controllers
             {
                 if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = userId,
-                        Action = "GetAllUsersDetails",
-                        EntityType = "User",
-                        EntityId = 0,
-                        Details = JsonSerializer.Serialize(new { message = "Unauthorized access to all users details" }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = userId;
+                    auditLog.Action = "GetAllUsersDetails";
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access to all users details" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLog);
                     return Unauthorized(new { Success = false, Message = "Unauthorized" });
                 }
                 var userDetails = await _userService.GetAllUsersDetailsAsync();
                 if (userDetails == null)
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = userId,
-                        Action = "GetAllUsersDetails",
-                        EntityType = "User",
-                        EntityId = userId,
-                        Details = JsonSerializer.Serialize(new { message = "No users found" }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = userId;
+                    auditLog.Action = "GetAllUsersDetails";
+                    auditLog.EntityId = userId;
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "No users found" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLog);
                     return NotFound(new { Success = false, Message = "No users found" });
                 }
-                var auditLogSuccess = new AuditLog
-                {
-                    UserId = userId,
-                    Action = "GetAllUsersDetails",
-                    EntityType = "User",
-                    EntityId = userId,
-                    Details = JsonSerializer.Serialize(new { message = $"All users details retrieved by {userId}" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogSuccess = AuditLog;
+                auditLogSuccess.UserId = userId;
+                auditLogSuccess.Action = "GetAllUsersDetails";
+                auditLogSuccess.EntityId = userId;
+                auditLogSuccess.Details = JsonSerializer.Serialize(new { message = $"All users details retrieved by {userId}" });
+                auditLogSuccess.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogMessage(auditLogSuccess);
                 return Ok(userDetails);
             }
             catch (Exception ex)
             {
-                var errorLog = new AuditLog
-                {
-                    UserId = 1,
-                    Action = "GetAllUsersDetails",
-                    EntityType = "User",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var errorLog = AuditLog;
+                errorLog.Action = "GetAllUsersDetails";
+                errorLog.Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message });
+                errorLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(errorLog);
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred while retrieving all users details" });
             }
@@ -248,32 +203,21 @@ namespace GradeBookAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = 1,
-                        Action = "UpdateProfile",
-                        EntityType = "User",
-                        EntityId = 0,
-                        Details = JsonSerializer.Serialize(new { message = "Invalid input data received for UpdateProfile" }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.Action = "UpdateProfile";
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Invalid input data received for UpdateProfile" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLog);
                     return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
                 }
 
                 if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = 1,
-                        Action = "UpdateProfile",
-                        EntityType = "User",
-                        EntityId = 0,
-                        Details = JsonSerializer.Serialize(new { message = "Unauthorized access to profile" }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = userId;
+                    auditLog.Action = "UpdateProfile";
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access to profile" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLog);
                     return Unauthorized(new { Success = false, Message = "Unauthorized" });
                 }
@@ -282,47 +226,33 @@ namespace GradeBookAPI.Controllers
 
                 if (result)
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = userId,
-                        Action = "UpdateProfile",
-                        EntityType = "User",
-                        EntityId = userId,
-                        Details = JsonSerializer.Serialize(new { message = $"Profile updated for {userId}" }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = userId;
+                    auditLog.Action = "UpdateProfile";
+                    auditLog.EntityId = userId;
+                    auditLog.Details = JsonSerializer.Serialize(new { message = $"Profile updated for {userId}" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
 
                     GradeLogger.Instance.LogMessage(auditLog);
 
                     return Ok(new { Success = true, Message = "Profile updated successfully" });
                 }
 
-                var auditLogFailed = new AuditLog
-                {
-                    UserId = userId,
-                    Action = "UpdateProfile",
-                    EntityType = "User",
-                    EntityId = userId,
-                    Details = JsonSerializer.Serialize(new { message = $"Failed to update profile for {userId}" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogFailed = AuditLog;
+                auditLogFailed.UserId = userId;
+                auditLogFailed.Action = "UpdateProfile";
+                auditLogFailed.EntityId = userId;
+                auditLogFailed.Details = JsonSerializer.Serialize(new { message = $"Failed to update profile for {userId}" });
+                auditLogFailed.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLogFailed);
                 return BadRequest(new { Success = false, Message = "Failed to update profile" });
             }
             catch (Exception ex)
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = 1,
-                    Action = "UpdateProfile",
-                    EntityType = "User",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.Action = "UpdateProfile";
+                auditLog.Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message });
+                auditLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLog);
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred while updating the profile" });
             }
@@ -339,32 +269,21 @@ namespace GradeBookAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = 1,
-                        Action = "ChangePassword",
-                        EntityType = "User",
-                        EntityId = 0,
-                        Details = JsonSerializer.Serialize(new { message = "Invalid input data received for ChangePassword" }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.Action = "ChangePassword";
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Invalid input data received for ChangePassword" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLog);
                     return BadRequest(new { Success = false, Message = "Invalid input data", Errors = ModelState });
                 }
 
                 if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = 1,
-                        Action = "ChangePassword",
-                        EntityType = "User",
-                        EntityId = 0,
-                        Details = JsonSerializer.Serialize(new { message = "Unauthorized access to change password" }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = userId;
+                    auditLog.Action = "ChangePassword";
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access to change password" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLog);
 
                     return Unauthorized(new { Success = false, Message = "Unauthorized" });
@@ -373,45 +292,31 @@ namespace GradeBookAPI.Controllers
 
                 if (result)
                 {
-                    var auditLog = new AuditLog
-                    {
-                        UserId = userId,
-                        Action = "ChangePassword",
-                        EntityType = "User",
-                        EntityId = userId,
-                        Details = JsonSerializer.Serialize(new { message = "Password changed successfully", userId = userId }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLog = AuditLog;
+                    auditLog.UserId = userId;
+                    auditLog.Action = "ChangePassword";
+                    auditLog.EntityId = userId;
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Password changed successfully", userId = userId });
+                    auditLog.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogMessage(auditLog);
                     return Ok(new { Success = true, Message = "Password changed successfully" });
                 }
 
-                var auditLogFailed = new AuditLog
-                {
-                    UserId = userId,
-                    Action = "ChangePassword",
-                    EntityType = "User",
-                    EntityId = userId,
-                    Details = JsonSerializer.Serialize(new { error = "Failed to change password", userId = userId }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogFailed = AuditLog;
+                auditLogFailed.UserId = userId;
+                auditLogFailed.Action = "ChangePassword";
+                auditLogFailed.EntityId = userId;
+                auditLogFailed.Details = JsonSerializer.Serialize(new { error = "Failed to change password", userId = userId });
+                auditLogFailed.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLogFailed);
                 return BadRequest(new { Success = false, Message = "Current password is incorrect" });
             }
             catch (Exception ex)
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = 1,
-                    Action = "ChangePassword",
-                    EntityType = "User",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.Action = "ChangePassword";
+                auditLog.Details = JsonSerializer.Serialize(new { error = ex.Message, stackTrace = ex.StackTrace, innerException = ex.InnerException?.Message });
+                auditLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLog);
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Success = false, Message = "An error occurred while changing the password" });
             }

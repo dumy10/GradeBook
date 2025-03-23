@@ -17,6 +17,17 @@ namespace GradeBookAPI.Controllers
     {
         private readonly IAssignmentService _assignmentService = assignmentService ?? throw new ArgumentNullException(nameof(assignmentService));
 
+        private AuditLog AuditLog => new()
+        {
+            UserId = 1,
+            EntityType = "Assignment",
+            EntityId = 0,
+            Action = "AssignmentController",
+            Details = JsonSerializer.Serialize(new { message = "AssignmentController initialized" }),
+            IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            CreatedAt = DateTime.UtcNow
+        };
+
         // POST: api/assignment/create
         [HttpPost("create")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -26,16 +37,11 @@ namespace GradeBookAPI.Controllers
         {
             if (!AuthHelper.IsTeacher(HttpContext, out int teacherId))
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "CreateAssignment",
-                    EntityType = "Assignment",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in CreateAssignment" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "CreateAssignment";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in CreateAssignment" });
+                auditLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLog);
 
                 return Unauthorized(new { Success = false, Message = "Unauthorized" });
@@ -43,16 +49,11 @@ namespace GradeBookAPI.Controllers
 
             if (!ModelState.IsValid)
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "CreateAssignment",
-                    EntityType = "Assignment",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { message = "Invalid input in CreateAssignment" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "CreateAssignment";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Invalid input in CreateAssignment" });
+                auditLog.CreatedAt = DateTime.UtcNow;
 
                 GradeLogger.Instance.LogWarning(auditLog);
 
@@ -63,16 +64,12 @@ namespace GradeBookAPI.Controllers
             {
                 var assignment = await _assignmentService.CreateAssignmentAsync(request);
 
-                var auditLogSuccess = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "CreateAssignment",
-                    EntityType = "Assignment",
-                    EntityId = assignment.AssignmentId,
-                    Details = JsonSerializer.Serialize(new { message = "Assignment created successfully" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogSuccess = AuditLog;
+                auditLogSuccess.UserId = teacherId;
+                auditLogSuccess.Action = "CreateAssignment";
+                auditLogSuccess.EntityId = assignment.AssignmentId;
+                auditLogSuccess.Details = JsonSerializer.Serialize(new { message = "Assignment created successfully" });
+                auditLogSuccess.CreatedAt = DateTime.UtcNow;
 
                 GradeLogger.Instance.LogMessage(auditLogSuccess);
 
@@ -80,16 +77,11 @@ namespace GradeBookAPI.Controllers
             }
             catch (Exception ex)
             {
-                var auditLogError = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "CreateAssignment",
-                    EntityType = "Assignment",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { message = ex.Message }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogError = AuditLog;
+                auditLogError.UserId = teacherId;
+                auditLogError.Action = "CreateAssignment";
+                auditLogError.Details = JsonSerializer.Serialize(new { message = ex.Message });
+                auditLogError.CreatedAt = DateTime.UtcNow;
 
                 GradeLogger.Instance.LogError(auditLogError);
 
@@ -106,16 +98,11 @@ namespace GradeBookAPI.Controllers
         {
             if (!AuthHelper.IsTeacher(HttpContext, out int teacherId))
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "GetAssignments",
-                    EntityType = "Assignment",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetAssignments" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetAssignments";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetAssignments" });
+                auditLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLog);
 
                 return Unauthorized(new { Success = false, Message = "Unauthorized" });
@@ -124,31 +111,21 @@ namespace GradeBookAPI.Controllers
 
             if (assignments == null)
             {
-                var auditLogError = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "GetAssignments",
-                    EntityType = "Assignment",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { message = "No assignments found." }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogError = AuditLog;
+                auditLogError.UserId = teacherId;
+                auditLogError.Action = "GetAssignments";
+                auditLogError.Details = JsonSerializer.Serialize(new { message = "No assignments found." });
+                auditLogError.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLogError);
 
                 return NotFound(new { Success = false, Message = "No assignments found." });
             }
 
-            var auditLogSuccess = new AuditLog
-            {
-                UserId = teacherId,
-                Action = "GetAssignments",
-                EntityType = "Assignment",
-                EntityId = 0,
-                Details = JsonSerializer.Serialize(new { message = "Assignments retrieved successfully" }),
-                IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                CreatedAt = DateTime.UtcNow
-            };
+            var auditLogSuccess = AuditLog;
+            auditLogSuccess.UserId = teacherId;
+            auditLogSuccess.Action = "GetAssignments";
+            auditLogSuccess.Details = JsonSerializer.Serialize(new { message = "Assignments retrieved successfully" });
+            auditLogSuccess.CreatedAt = DateTime.UtcNow;
             GradeLogger.Instance.LogMessage(auditLogSuccess);
 
             return Ok(assignments);
@@ -164,16 +141,11 @@ namespace GradeBookAPI.Controllers
         {
             if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = userId,
-                    Action = "GetAssignmentsForClass",
-                    EntityType = "Assignment",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetAssignmentsForClass" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.UserId = userId;
+                auditLog.Action = "GetAssignmentsForClass";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetAssignmentsForClass" });
+                auditLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLog);
 
                 return Unauthorized(new { Success = false, Message = "Unauthorized" });
@@ -185,47 +157,32 @@ namespace GradeBookAPI.Controllers
 
                 if (assignments == null)
                 {
-                    var auditLogError = new AuditLog
-                    {
-                        UserId = userId,
-                        Action = "GetAssignmentsForClass",
-                        EntityType = "Assignment",
-                        EntityId = 0,
-                        Details = JsonSerializer.Serialize(new { message = "No assignments found." }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLogError = AuditLog;
+                    auditLogError.UserId = userId;
+                    auditLogError.Action = "GetAssignmentsForClass";
+                    auditLogError.Details = JsonSerializer.Serialize(new { message = "No assignments found." });
+                    auditLogError.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLogError);
 
                     return NotFound(new { Success = false, Message = "No assignments found." });
                 }
 
-                var auditLogSuccess = new AuditLog
-                {
-                    UserId = userId,
-                    Action = "GetAssignmentsForClass",
-                    EntityType = "Assignment",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { message = "Assignments retrieved successfully" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogSuccess = AuditLog;
+                auditLogSuccess.UserId = userId;
+                auditLogSuccess.Action = "GetAssignmentsForClass";
+                auditLogSuccess.Details = JsonSerializer.Serialize(new { message = "Assignments retrieved successfully" });
+                auditLogSuccess.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogMessage(auditLogSuccess);
 
                 return Ok(assignments);
             }
             catch (Exception ex)
             {
-                var auditLogError = new AuditLog
-                {
-                    UserId = userId,
-                    Action = "GetAssignmentsForClass",
-                    EntityType = "Assignment",
-                    EntityId = 0,
-                    Details = JsonSerializer.Serialize(new { message = ex.Message }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogError = AuditLog;
+                auditLogError.UserId = userId;
+                auditLogError.Action = "GetAssignmentsForClass";
+                auditLogError.Details = JsonSerializer.Serialize(new { message = ex.Message });
+                auditLogError.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLogError);
 
                 return BadRequest(new { Success = false, Message = "An error occurred while retrieving assignments." });
@@ -242,31 +199,23 @@ namespace GradeBookAPI.Controllers
         {
             if (!AuthHelper.IsTeacher(HttpContext, out int teacherId))
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "UpdateAssignment",
-                    EntityType = "Assignment",
-                    EntityId = assignmentId,
-                    Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in UpdateAssignment" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "UpdateAssignment";
+                auditLog.EntityId = assignmentId;
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in UpdateAssignment" });
+                auditLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized(new { Success = false, Message = "Unauthorized" });
             }
             if (!ModelState.IsValid)
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "UpdateAssignment",
-                    EntityType = "Assignment",
-                    EntityId = assignmentId,
-                    Details = JsonSerializer.Serialize(new { message = "Invalid input in UpdateAssignment" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "UpdateAssignment";
+                auditLog.EntityId = assignmentId;
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Invalid input in UpdateAssignment" });
+                auditLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogWarning(auditLog);
                 return BadRequest(new { Success = false, Message = ModelState });
             }
@@ -275,44 +224,32 @@ namespace GradeBookAPI.Controllers
                 var assignment = await _assignmentService.UpdateAssignmentAsync(assignmentId, request);
                 if (assignment == null)
                 {
-                    var auditLogError = new AuditLog
-                    {
-                        UserId = teacherId,
-                        Action = "UpdateAssignment",
-                        EntityType = "Assignment",
-                        EntityId = assignmentId,
-                        Details = JsonSerializer.Serialize(new { message = "Assignment not found." }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLogError = AuditLog;
+                    auditLogError.UserId = teacherId;
+                    auditLogError.Action = "UpdateAssignment";
+                    auditLogError.EntityId = assignmentId;
+                    auditLogError.Details = JsonSerializer.Serialize(new { message = "Assignment not found." });
+                    auditLogError.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLogError);
                     return NotFound(new { Success = false, Message = "Assignment not found." });
                 }
-                var auditLogSuccess = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "UpdateAssignment",
-                    EntityType = "Assignment",
-                    EntityId = assignmentId,
-                    Details = JsonSerializer.Serialize(new { message = "Assignment updated successfully" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogSuccess = AuditLog;
+                auditLogSuccess.UserId = teacherId;
+                auditLogSuccess.Action = "UpdateAssignment";
+                auditLogSuccess.EntityId = assignmentId;
+                auditLogSuccess.Details = JsonSerializer.Serialize(new { message = "Assignment updated successfully" });
+                auditLogSuccess.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogMessage(auditLogSuccess);
                 return Ok(assignment);
             }
             catch (Exception ex)
             {
-                var auditLogError = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "Update Assignment",
-                    EntityType = "Assignment",
-                    EntityId = assignmentId,
-                    Details = JsonSerializer.Serialize(new { message = ex.Message }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogError = AuditLog;
+                auditLogError.UserId = teacherId;
+                auditLogError.Action = "Update Assignment";
+                auditLogError.EntityId = assignmentId;
+                auditLogError.Details = JsonSerializer.Serialize(new { message = ex.Message });
+                auditLogError.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLogError);
                 return BadRequest(new { Success = false, Message = "An error occurred while updating the assignment." });
             }
@@ -328,16 +265,12 @@ namespace GradeBookAPI.Controllers
         {
             if (!AuthHelper.IsTeacher(HttpContext, out int teacherId))
             {
-                var auditLog = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "DeleteAssignment",
-                    EntityType = "Assignment",
-                    EntityId = assignmentId,
-                    Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in DeleteAssignment" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "DeleteAssignment";
+                auditLog.EntityId = assignmentId;
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in DeleteAssignment" });
+                auditLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLog);
                 return Unauthorized(new { Success = false, Message = "Unauthorized" });
             }
@@ -346,44 +279,32 @@ namespace GradeBookAPI.Controllers
                 var isDeleted = await _assignmentService.DeleteAssignmentAsync(assignmentId);
                 if (!isDeleted)
                 {
-                    var auditLogError = new AuditLog
-                    {
-                        UserId = teacherId,
-                        Action = "DeleteAssignment",
-                        EntityType = "Assignment",
-                        EntityId = assignmentId,
-                        Details = JsonSerializer.Serialize(new { message = "Assignment not found." }),
-                        IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        CreatedAt = DateTime.UtcNow
-                    };
+                    var auditLogError = AuditLog;
+                    auditLogError.UserId = teacherId;
+                    auditLogError.Action = "DeleteAssignment";
+                    auditLogError.EntityId = assignmentId;
+                    auditLogError.Details = JsonSerializer.Serialize(new { message = "Assignment not found." });
+                    auditLogError.CreatedAt = DateTime.UtcNow;
                     GradeLogger.Instance.LogError(auditLogError);
                     return NotFound(new { Success = false, Message = "Assignment not found." });
                 }
-                var auditLogSuccess = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "DeleteAssignment",
-                    EntityType = "Assignment",
-                    EntityId = assignmentId,
-                    Details = JsonSerializer.Serialize(new { message = "Assignment deleted successfully" }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogSuccess = AuditLog;
+                auditLogSuccess.UserId = teacherId;
+                auditLogSuccess.Action = "DeleteAssignment";
+                auditLogSuccess.EntityId = assignmentId;
+                auditLogSuccess.Details = JsonSerializer.Serialize(new { message = "Assignment deleted successfully" });
+                auditLogSuccess.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogMessage(auditLogSuccess);
                 return Ok(new { Success = true, Message = "Assignment deleted successfully" });
             }
             catch (Exception ex)
             {
-                var auditLogError = new AuditLog
-                {
-                    UserId = teacherId,
-                    Action = "DeleteAssignment",
-                    EntityType = "Assignment",
-                    EntityId = assignmentId,
-                    Details = JsonSerializer.Serialize(new { message = ex.Message }),
-                    IpAddress = Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    CreatedAt = DateTime.UtcNow
-                };
+                var auditLogError = AuditLog;
+                auditLogError.UserId = teacherId;
+                auditLogError.Action = "DeleteAssignment";
+                auditLogError.EntityId = assignmentId;
+                auditLogError.Details = JsonSerializer.Serialize(new { message = ex.Message });
+                auditLogError.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogError(auditLogError);
                 return BadRequest(new { Success = false, Message = "An error occurred while deleting the assignment." });
             }

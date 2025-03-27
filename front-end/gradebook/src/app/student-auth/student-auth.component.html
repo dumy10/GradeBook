@@ -1,0 +1,39 @@
+<div class="auth-container mx-auto mt-5 p-4 shadow-sm bg-white rounded">
+    <h2 class="fw-bold text-center">Welcome to GradeTrack</h2>
+    <p class="text-muted text-center">Sign in or create a new account as a student</p>
+  
+    <ul class="nav nav-tabs justify-content-center mb-4">
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="activeTab === 'login'" (click)="activeTab = 'login'">Login</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="activeTab === 'signup'" (click)="activeTab = 'signup'">Sign Up</a>
+      </li>
+    </ul>
+  
+    <form *ngIf="activeTab === 'login'">
+      <div class="mb-3">
+        <input type="email" class="form-control" placeholder="student@school.edu" />
+      </div>
+      <div class="mb-2">
+        <input type="password" class="form-control" placeholder="Password" />
+      </div>
+      <button type="submit" class="btn btn-dark w-100">Login</button>
+      <p class="text-center mt-3 small">Not a student? <a routerLink="/teacher">Login as teacher</a></p>
+    </form>
+  
+    <form *ngIf="activeTab === 'signup'">
+      <div class="mb-2">
+        <input type="text" class="form-control" placeholder="Full Name" />
+      </div>
+      <input type="email" class="form-control mb-2" placeholder="Email" />
+      <input type="password" class="form-control mb-2" placeholder="Password" />
+      <input type="password" class="form-control mb-3" placeholder="Confirm Password" />
+      <button type="submit" class="btn btn-dark w-100">Create Account</button>
+      <p class="text-center mt-3 small">
+        Already have an account? <a (click)="activeTab = 'login'">Login</a><br />
+        Want to sign up as a teacher? <a routerLink="/teacher">Sign up as teacher</a>
+      </p>
+    </form>
+  </div>
+  

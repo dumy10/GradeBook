@@ -29,7 +29,7 @@ namespace GradeBookAPI.Entities
         public DateTime UpdatedAt { get; set; }
 
         public virtual Assignment? Assignment { get; set; }
-        public virtual UserProfile? Student { get; set; }
-        public virtual UserProfile? Grader { get; set; }
+        public virtual User? Student { get; set; }
+        public virtual User? Grader { get; set; }
     }
 }

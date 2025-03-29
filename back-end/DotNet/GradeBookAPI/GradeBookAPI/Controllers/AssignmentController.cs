@@ -4,6 +4,7 @@ using GradeBookAPI.Helpers;
 using GradeBookAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 
 using GradeLogger = GradeBookAPI.Logger.Logger;
@@ -109,7 +110,7 @@ namespace GradeBookAPI.Controllers
             }
             var assignments = await _assignmentService.GetAllAssignmentsAsync();
 
-            if (assignments == null)
+            if (assignments.IsNullOrEmpty())
             {
                 var auditLogError = AuditLog;
                 auditLogError.UserId = teacherId;
@@ -155,7 +156,7 @@ namespace GradeBookAPI.Controllers
             {
                 var assignments = await _assignmentService.GetAssignmentsForClassAsync(classId);
 
-                if (assignments == null)
+                if (assignments.IsNullOrEmpty())
                 {
                     var auditLogError = AuditLog;
                     auditLogError.UserId = userId;

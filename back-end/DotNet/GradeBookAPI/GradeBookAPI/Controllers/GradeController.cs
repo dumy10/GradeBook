@@ -4,6 +4,7 @@ using GradeBookAPI.Helpers;
 using GradeBookAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 
 using GradeLogger = GradeBookAPI.Logger.Logger;
@@ -176,7 +177,7 @@ namespace GradeBookAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGrade(int id)
         {
-            if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
+            if (!AuthHelper.IsAuthenticated(HttpContext, out int _))
             {
                 var auditLog = AuditLog;
                 auditLog.Action = "GetGrade";
@@ -206,7 +207,7 @@ namespace GradeBookAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGrades()
         {
-            if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
+            if (!AuthHelper.IsAuthenticated(HttpContext, out int _))
             {
                 var auditLog = AuditLog;
                 auditLog.Action = "GetGrade";
@@ -219,7 +220,7 @@ namespace GradeBookAPI.Controllers
 
             var grades = await _gradeService.GetGradesAsync();
 
-            if (grades == null)
+            if (grades.IsNullOrEmpty())
             {
                 return NotFound(new { Success = false, Message = "No grades found." });
             }
@@ -234,7 +235,7 @@ namespace GradeBookAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGradesByClass(int classId)
         {
-            if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
+            if (!AuthHelper.IsAuthenticated(HttpContext, out int _))
             {
                 var auditLog = AuditLog;
                 auditLog.Action = "GetGradesByClass";
@@ -249,7 +250,8 @@ namespace GradeBookAPI.Controllers
             try
             {
                 var grades = await _gradeService.GetGradesForClassAsync(classId);
-                if (grades == null)
+
+                if (grades.IsNullOrEmpty())
                 {
                     return NotFound(new { Success = false, Message = "No grades found." });
                 }
@@ -277,22 +279,26 @@ namespace GradeBookAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGradesByStudent(int studentId)
         {
-            if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
+            // If the requestor is a student, they can only get their own grades
+            if (!AuthHelper.IsTeacher(HttpContext, out int _))
             {
-                var auditLog = AuditLog;
-                auditLog.Action = "GetGradesByStudent";
-                auditLog.EntityId = studentId;
-                auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetGradesByStudent" });
-                auditLog.CreatedAt = DateTime.UtcNow;
-                GradeLogger.Instance.LogError(auditLog);
-
-                return Unauthorized(new { Success = false, Message = "Unauthorized" });
+                if (!AuthHelper.IsStudent(HttpContext, out int studentIdFromToken) || studentIdFromToken != studentId)
+                {
+                    var auditLog = AuditLog;
+                    auditLog.Action = "GetGradesByStudent";
+                    auditLog.EntityId = studentId;
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetGradesByStudent" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
+                    GradeLogger.Instance.LogError(auditLog);
+                    return Unauthorized(new { Success = false, Message = "Unauthorized" });
+                }
             }
 
             try
             {
                 var grades = await _gradeService.GetGradesForStudentAsync(studentId);
-                if (grades == null)
+
+                if (grades.IsNullOrEmpty())
                 {
                     return NotFound(new { Success = false, Message = "No grades found." });
                 }
@@ -320,22 +326,26 @@ namespace GradeBookAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGradesByClassAndStudent(int classId, int studentId)
         {
-            if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
+            // If the requestor is a student, they can only get their own grades
+            if (!AuthHelper.IsTeacher(HttpContext, out int _))
             {
-                var auditLog = AuditLog;
-                auditLog.Action = "GetGradesByClassAndStudent";
-                auditLog.EntityId = classId;
-                auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetGradesByClassAndStudent" });
-                auditLog.CreatedAt = DateTime.UtcNow;
-                GradeLogger.Instance.LogError(auditLog);
-
-                return Unauthorized(new { Success = false, Message = "Unauthorized" });
+                if (!AuthHelper.IsStudent(HttpContext, out int studentIdFromToken) || studentIdFromToken != studentId)
+                {
+                    var auditLog = AuditLog;
+                    auditLog.Action = "GetGradesByClassAndStudent";
+                    auditLog.EntityId = classId;
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetGradesByClassAndStudent" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
+                    GradeLogger.Instance.LogError(auditLog);
+                    return Unauthorized(new { Success = false, Message = "Unauthorized" });
+                }
             }
 
             try
             {
                 var grades = await _gradeService.GetGradesForAClassAndStudentAsync(classId, studentId);
-                if (grades == null)
+
+                if (grades.IsNullOrEmpty())
                 {
                     return NotFound(new { Success = false, Message = "No grades found." });
                 }
@@ -378,10 +388,14 @@ namespace GradeBookAPI.Controllers
             try
             {
                 var grades = await _gradeService.GetGradesForAssignmentAsync(assignmentId);
-                if (grades == null)
+
+                if (grades.IsNullOrEmpty())
                 {
                     return NotFound(new { Success = false, Message = "No grades found." });
                 }
+
+                // If the requestor is a student, they can only get their own grades
+                grades = (AuthHelper.IsStudent(HttpContext, out int studentId) ? grades.Where(g => g.Student.UserId == studentId) : grades);
 
                 return Ok(grades);
             }
@@ -406,21 +420,32 @@ namespace GradeBookAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetGradesByAssignmentAndStudent(int assignmentId, int studentId)
         {
-            if (!AuthHelper.IsAuthenticated(HttpContext, out int userId))
+            // If the requestor is a student, they can only get their own grades
+            if (!AuthHelper.IsTeacher(HttpContext, out int _))
             {
-                var auditLog = AuditLog;
-                auditLog.Action = "GetGradesByAssignmentAndStudent";
-                auditLog.EntityId = assignmentId;
-                auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetGradesByAssignmentAndStudent" });
-                auditLog.CreatedAt = DateTime.UtcNow;
-                GradeLogger.Instance.LogError(auditLog);
+                if (!AuthHelper.IsStudent(HttpContext, out int studentIdFromToken) || studentIdFromToken != studentId)
+                {
+                    var auditLog = AuditLog;
+                    auditLog.Action = "GetGradesByAssignmentAndStudent";
+                    auditLog.EntityId = assignmentId;
+                    auditLog.Details = JsonSerializer.Serialize(new { message = "Unauthorized access attempt in GetGradesByAssignmentAndStudent" });
+                    auditLog.CreatedAt = DateTime.UtcNow;
+                    GradeLogger.Instance.LogError(auditLog);
 
-                return Unauthorized(new { Success = false, Message = "Unauthorized" });
+                    return Unauthorized(new { Success = false, Message = "Unauthorized" });
+                }
             }
 
             try
             {
-                var grades = await _gradeService.GetGradesForAssignemntAndStudentAsync(assignmentId, studentId);
+
+                var grades = await _gradeService.GetGradesForAssignmentAndStudentAsync(assignmentId, studentId);
+
+                if (grades.IsNullOrEmpty())
+                {
+                    return NotFound(new { Success = false, Message = "No grades found." });
+                }
+
                 return Ok(grades);
             }
             catch (Exception ex)
@@ -483,6 +508,7 @@ namespace GradeBookAPI.Controllers
             try
             {
                 var result = await _gradeService.UpdateGradeAsync(grade);
+
                 if (!result)
                 {
                     var auditLog = AuditLog;

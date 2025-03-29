@@ -4,6 +4,7 @@ using GradeBookAPI.Helpers;
 using GradeBookAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
 
 using GradeLogger = GradeBookAPI.Logger.Logger;
@@ -382,6 +383,18 @@ namespace GradeBookAPI.Controllers
 
             var classes = await _teacherService.GetClassesAsync(teacherId);
 
+            if (classes.IsNullOrEmpty())
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetClasses";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "No classes found" });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+
+                return NotFound("No classes found.");
+            }
+
             var successLog = AuditLog;
             successLog.UserId = teacherId;
             successLog.Action = "GetClasses";
@@ -395,6 +408,7 @@ namespace GradeBookAPI.Controllers
         [HttpGet("courses/assigned")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAssignedCourses()
         {
@@ -411,12 +425,25 @@ namespace GradeBookAPI.Controllers
 
             var courses = await _teacherService.GetCoursesAsync(teacherId);
 
+            if (courses.IsNullOrEmpty())
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetAssignedCourses";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "No courses found" });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+
+                return NotFound("No courses found.");
+            }
+
             var successLog = AuditLog;
             successLog.UserId = teacherId;
             successLog.Action = "GetAssignedCourses";
             successLog.Details = JsonSerializer.Serialize(new { message = "Courses retrieved successfully" });
             successLog.CreatedAt = DateTime.UtcNow;
             GradeLogger.Instance.LogMessage(successLog);
+
             return Ok(courses);
         }
 
@@ -424,6 +451,7 @@ namespace GradeBookAPI.Controllers
         [HttpGet("courses")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCourses()
         {
@@ -440,6 +468,18 @@ namespace GradeBookAPI.Controllers
 
             var courses = await _teacherService.GetAllCoursesAsync();
 
+            if (courses.IsNullOrEmpty())
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetCourses";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "No courses found" });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+
+                return NotFound("No courses found.");
+            }
+
             var successLog = AuditLog;
             successLog.UserId = teacherId;
             successLog.Action = "GetCourses";
@@ -453,6 +493,7 @@ namespace GradeBookAPI.Controllers
         [HttpGet("classes/{classId}/students")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetStudents(int classId)
         {
@@ -469,6 +510,20 @@ namespace GradeBookAPI.Controllers
             }
 
             var students = await _teacherService.GetStudentsInClassAsync(teacherId, classId);
+
+            if (students.IsNullOrEmpty())
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetStudents";
+                auditLog.EntityId = classId;
+                auditLog.Details = JsonSerializer.Serialize(new { message = "No students found" });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+
+                return NotFound("No students found.");
+            }
+
             var successLog = AuditLog;
             successLog.UserId = teacherId;
             successLog.Action = "GetStudents";
@@ -476,6 +531,7 @@ namespace GradeBookAPI.Controllers
             successLog.Details = JsonSerializer.Serialize(new { message = "Students retrieved successfully" });
             successLog.CreatedAt = DateTime.UtcNow;
             GradeLogger.Instance.LogMessage(successLog);
+
             return Ok(students);
         }
     }

@@ -7,8 +7,17 @@
       border: none;
     }
   
-    .form-control {
+    .form-control, .form-select {
       border-radius: 6px;
     }
   }
+  
+.error-text {
+  color: #e74c3c;
+  margin-top: 0.25rem;
+}
+
+.error-message {
+  color: #e74c3c;
+}
   

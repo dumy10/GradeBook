@@ -12,38 +12,108 @@
     </ul>
   
     <!-- LOGIN FORM -->
-    <form *ngIf="activeTab === 'login'">
+    <form *ngIf="activeTab === 'login'" (ngSubmit)="onLogin()">
       <div class="mb-3">
-        <input type="email" class="form-control" placeholder="teacher@school.edu" />
+        <input 
+          type="email" 
+          class="form-control" 
+          placeholder="teacher@school.edu" 
+          [(ngModel)]="loginCredentials.email" 
+          name="email"
+          (input)="validateLoginForm()"
+          required />
+        <div class="error-text small" *ngIf="validationErrors.email">
+          {{ validationErrors.email }}
+        </div>
       </div>
       <div class="mb-2">
-        <input type="password" class="form-control" placeholder="Password" />
+        <input 
+          type="password" 
+          class="form-control" 
+          placeholder="Password" 
+          [(ngModel)]="loginCredentials.password" 
+          name="password"
+          (input)="validateLoginForm()"
+          required />
+        <div class="error-text small" *ngIf="validationErrors.password">
+          {{ validationErrors.password }}
+        </div>
       </div>
       
-      <button type="submit" class="btn btn-dark w-100">Login</button>
+      <div class="error-message text-center mb-2" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button 
+        type="submit" 
+        class="btn btn-dark w-100"
+        [disabled]="isLoading || !isLoginFormValid">
+        {{ isLoading ? 'Logging in...' : 'Login' }}
+      </button>
       <p class="text-center mt-3 small">Not a teacher? <a routerLink="/student">Login as student</a></p>
     </form>
   
     <!-- SIGNUP FORM -->
-    <form *ngIf="activeTab === 'signup'">
+    <form *ngIf="activeTab === 'signup'" (ngSubmit)="onSignup()">
       <div class="row mb-2">
         <div class="col">
-          <input type="text" class="form-control" placeholder="First Name" />
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="First Name" 
+            [(ngModel)]="signupData.firstName"
+            name="firstName"
+            required />
         </div>
         <div class="col">
-          <input type="text" class="form-control" placeholder="Last Name" />
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Last Name" 
+            [(ngModel)]="signupData.lastName"
+            name="lastName"
+            required />
         </div>
       </div>
-      <input type="email" class="form-control mb-2" placeholder="Email" />
-      <input type="password" class="form-control mb-2" placeholder="Password" />
-      <input type="password" class="form-control mb-2" placeholder="Confirm Password" />
-      <select class="form-select mb-3">
-        <option selected disabled>Select department</option>
-        <option>Math</option>
-        <option>Science</option>
-        <option>Literature</option>
-      </select>
-      <button type="submit" class="btn btn-dark w-100">Create Account</button>
+      <input 
+        type="text" 
+        class="form-control mb-2" 
+        placeholder="Username" 
+        [(ngModel)]="signupData.username"
+        name="username"
+        required />
+      <input 
+        type="email" 
+        class="form-control mb-2" 
+        placeholder="Email" 
+        [(ngModel)]="signupData.email"
+        name="signupEmail"
+        required />
+      <input 
+        type="password" 
+        class="form-control mb-2" 
+        placeholder="Password" 
+        [(ngModel)]="signupData.password"
+        name="signupPassword"
+        required />
+      <input 
+        type="password" 
+        class="form-control mb-2" 
+        placeholder="Confirm Password" 
+        [(ngModel)]="signupData.confirmPassword"
+        name="confirmPassword"
+        required />
+      
+      <div class="error-message text-center mb-2" *ngIf="signupErrorMessage">
+        {{ signupErrorMessage }}
+      </div>
+      
+      <button 
+        type="submit" 
+        class="btn btn-dark w-100"
+        [disabled]="isSignupLoading">
+        {{ isSignupLoading ? 'Creating Account...' : 'Create Account' }}
+      </button>
       <p class="text-center mt-3 small">
         Already have an account? <a (click)="activeTab = 'login'">Login</a><br />
         Want to sign up as a student? <a routerLink="/student">Sign up as student</a>

@@ -1,0 +1,34 @@
+.welcome-container {
+  background-color: #131316;
+  min-height: 100vh;
+  padding: 2rem;
+
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  .cards-wrapper {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+
+    .card {
+      width: 320px;
+      border-radius: 12px;
+      border: none;
+
+      ul {
+        padding-left: 1.2rem;
+
+        li {
+          margin-bottom: 0.5rem;
+        }
+      }
+
+      .btn {
+        font-weight: 500;
+      }
+    }
+  }
+}

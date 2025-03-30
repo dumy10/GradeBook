@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { TeacherAuthComponent } from './teacher-auth.component';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 describe('TeacherAuthComponent', () => {
   let component: TeacherAuthComponent;
@@ -8,7 +11,15 @@ describe('TeacherAuthComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TeacherAuthComponent]
+      imports: [
+        TeacherAuthComponent,
+        FormsModule
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([])
+      ]
     })
     .compileComponents();
 

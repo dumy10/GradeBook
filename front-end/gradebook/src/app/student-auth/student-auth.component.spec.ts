@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { StudentAuthComponent } from './student-auth.component';
+import { provideHttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 
 describe('StudentAuthComponent', () => {
   let component: StudentAuthComponent;
@@ -8,7 +10,9 @@ describe('StudentAuthComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [StudentAuthComponent]
+      imports: [StudentAuthComponent],
+      providers: [provideHttpClient(), { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => {} } } } }],
+      
     })
     .compileComponents();
 

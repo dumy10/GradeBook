@@ -100,7 +100,10 @@ export class StudentAuthComponent {
   }
 
   onLogin(): void {
+    console.log('Login button clicked', this.loginCredentials);
+    
     if (!this.isLoginFormValid) {
+      console.log('Form is not valid');
       return;
     }
 
@@ -109,9 +112,11 @@ export class StudentAuthComponent {
 
     this.authService.login(this.loginCredentials).subscribe({
       next: (response) => {
+        console.log('Login response:', response);
         if (response.success) {
           // Check if the user has the correct role
           if (response.role.toLowerCase() === 'student') {
+            
             this.router.navigate(['/student-dashboard']);
             console.log(response);
           } else {
@@ -125,6 +130,7 @@ export class StudentAuthComponent {
         }
       },
       error: (error) => {
+        console.error('Login error:', error);
         this.errorMessage = 'Invalid username or password';
         this.resetFormState();
       },
@@ -182,6 +188,7 @@ export class StudentAuthComponent {
     this.authService.register(registerData).subscribe({
       next: (response) => {
         if (response.success) {
+          console.log(response);
           // Registration successful, navigate to dashboard
           this.router.navigate(['/student-dashboard']);
         } else {

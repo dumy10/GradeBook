@@ -49,7 +49,7 @@ export class TeacherAuthComponent {
   signupErrorMessage: string = '';
   isLoading: boolean = false;
   isSignupLoading: boolean = false;
-  isLoginFormValid: boolean = false;
+  isLoginFormValid: boolean = true;
   validationErrors = {
     email: '',
     password: '',
@@ -104,20 +104,26 @@ export class TeacherAuthComponent {
   }
 
   onLogin(): void {
+    console.log('Teacher onLogin method called');
+    console.log('Form validation state:', this.isLoginFormValid);
+    
     if (!this.isLoginFormValid) {
+      console.log('Form is not valid, returning');
       return;
     }
 
     this.isLoading = true;
     this.errorMessage = '';
 
+    console.log('Calling auth service login with:', this.loginCredentials);
+
     this.authService.login(this.loginCredentials).subscribe({
       next: (response) => {
+        console.log('Login response received:', response);
         if (response.success) {
-          // Check if the user has the correct role
-          if (response.role.toLowerCase() === 'teacher') {
+          // Check if the user has the correct role using case-insensitive comparison
+          if (response.role.toUpperCase() === 'TEACHER') {
             this.router.navigate(['/teacher-dashboard']);
-            console.log(response);
           } else {
             // Use generic error message for wrong role
             this.errorMessage = 'Invalid username or password';
@@ -129,7 +135,14 @@ export class TeacherAuthComponent {
         }
       },
       error: (error) => {
-        this.errorMessage = 'Invalid username or password';
+        console.log('Login error:', error);
+        
+        if (error.status === 0) {
+          this.errorMessage = 'Network or CORS error. Please check if the server is running and CORS is configured.';
+        } else {
+          this.errorMessage = error.error?.message || 'Invalid username or password';
+        }
+        
         this.resetFormState();
       },
       complete: () => {
@@ -186,7 +199,7 @@ export class TeacherAuthComponent {
 
     // Start loading state
     this.isSignupLoading = true;
-    console.log(registerData);
+    
     // Call registration service
     this.authService.register(registerData).subscribe({
       next: (response) => {

@@ -4,17 +4,33 @@
   cursor: pointer;
 }
 
-/* Make sure tab navigation is properly visible */
+/* Global container style */
+.auth-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Tab styling */
+.nav-tabs {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: 25px;
+}
+
 .nav-tabs .nav-item .nav-link {
   border: none;
   background: transparent;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.25rem;
   margin-right: 0.5rem;
   cursor: pointer;
   color: #6c757d;
   font-weight: 500;
   border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .nav-tabs .nav-item .nav-link.active {
@@ -22,6 +38,19 @@
   font-weight: 600;
   border-bottom: 2px solid #198754;
   background-color: transparent;
+}
+
+.nav-tabs .nav-item .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background-color: #198754;
+  border-radius: 50%;
+  transform: translateX(-50%) translateY(50%);
+  display: block;
 }
 
 .nav-tabs .nav-item .nav-link:hover:not(.active) {
@@ -48,6 +77,7 @@
 .timeline-card {
   transition: all 0.2s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
 }
 
 .timeline-card:hover {
@@ -59,16 +89,21 @@
 .feedback-box {
   border-left: 3px solid #198754;
   font-style: italic;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
 }
 
 .grade-meta {
   font-size: 0.875rem;
   border-radius: 0.25rem;
+  background-color: #f8f9fa;
 }
 
 /* Ensure tab content is visible */
 .tab-content {
   min-height: 300px;
+  padding: 20px 0;
 }
 
 .dashboard-container {
@@ -194,4 +229,35 @@
   &:hover {
     background-color: #1565c0;
   }
+}
+
+/* Form elements styling */
+.form-control:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+.btn-success {
+  background-color: #198754;
+  border-color: #198754;
+  transition: all 0.2s ease;
+}
+
+.btn-success:hover, .btn-success:focus {
+  background-color: #157347;
+  border-color: #146c43;
+  transform: translateY(-1px);
+}
+
+/* Table improvements */
+.table-hover tbody tr:hover {
+  background-color: rgba(25, 135, 84, 0.05);
+}
+
+/* Card styling */
+.card {
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 } 

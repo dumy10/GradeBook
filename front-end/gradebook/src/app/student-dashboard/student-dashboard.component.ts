@@ -50,7 +50,6 @@ export class StudentDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log('StudentDashboardComponent initialized');
     // Check if user is logged in
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/student']);
@@ -78,15 +77,11 @@ export class StudentDashboardComponent implements OnInit {
       this.userData.lastName = parsedData.lastName || '';
     }
     
-    // Set initial tab
-    console.log('Setting default tab to:', this.activeTab);
-    
     // Load grades on init since the default tab is 'grades'
     this.loadGrades();
   }
 
   changeTab(tab: 'profile' | 'password' | 'grades' | 'history'): void {
-    console.log('Changing tab to:', tab);
     this.activeTab = tab;
     this.successMessage = '';
     this.errorMessage = '';
@@ -107,21 +102,12 @@ export class StudentDashboardComponent implements OnInit {
     this.gradesError = '';
     this.lastErrorDetails = null;
     
-    console.log('Starting to load grades for user ID:', this.userInfo.userId);
-    
     this.gradeService.getStudentGrades(this.userInfo.userId).subscribe({
       next: (grades) => {
-        console.log('Grades loaded successfully:', grades);
-        console.log('Number of grades:', grades.length);
-        console.log('First grade (if exists):', grades.length > 0 ? grades[0] : 'No grades');
         this.grades = grades;
         this.gradesLoading = false;
       },
       error: (error) => {
-        console.error('Error loading grades:', error);
-        console.error('Error status:', error.status);
-        console.error('Error message:', error.message);
-        console.error('Error details:', error.error);
         this.gradesError = 'Failed to load grades. Please try again later.';
         this.gradesLoading = false;
         
@@ -173,28 +159,16 @@ export class StudentDashboardComponent implements OnInit {
     this.successMessage = '';
     this.errorMessage = '';
 
-    // Log the token to check availability
-    const token = this.authService.getToken();
-    console.log('Authorization token available:', !!token);
-    console.log('Token:', token);
-
     this.authService.updateProfile(this.userData).subscribe({
       next: (response) => {
-        console.log('Profile update response:', response);
         if (response.success) {
           this.successMessage = 'Profile updated successfully!';
-          // Note: We don't update localStorage here since email/username don't change
         } else {
           this.errorMessage = response.message || 'Failed to update profile';
         }
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Profile update error:', error);
-        console.error('Status:', error.status);
-        console.error('Status Text:', error.statusText);
-        console.error('Error details:', error.error);
-        
         if (error.status === 405) {
           this.errorMessage = 'Method Not Allowed: The server doesn\'t support this request method for this endpoint.';
         } else {
@@ -229,14 +203,8 @@ export class StudentDashboardComponent implements OnInit {
     this.successMessage = '';
     this.errorMessage = '';
 
-    // Log the token to check availability
-    const token = this.authService.getToken();
-    console.log('Authorization token available for password change:', !!token);
-    console.log('Token for password change:', token);
-
     this.authService.changePassword(this.passwordData).subscribe({
       next: (response) => {
-        console.log('Password change response:', response);
         if (response.success) {
           this.successMessage = 'Password changed successfully!';
           this.passwordData = {
@@ -250,11 +218,6 @@ export class StudentDashboardComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Password change error:', error);
-        console.error('Status:', error.status);
-        console.error('Status Text:', error.statusText);
-        console.error('Error details:', error.error);
-        
         if (error.status === 400) {
           this.errorMessage = 'Invalid password data. The current password may be incorrect.';
         } else if (error.status === 401) {

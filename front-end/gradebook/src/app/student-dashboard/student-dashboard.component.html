@@ -1,9 +1,4 @@
 <div class="auth-container mx-auto mt-5 p-4 shadow-sm bg-white rounded">
-  <!-- Debug info - remove in production -->
-  <div class="small text-muted mb-2">
-    Current Tab: <strong>{{ activeTab }}</strong>
-  </div>
-  
   <header class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold">Student Dashboard</h2>
     <button class="btn btn-danger" (click)="logout()">Logout</button>
@@ -39,7 +34,7 @@
       <form (ngSubmit)="updateProfile()">
         <!-- Read-only information -->
         <div class="mb-3">
-          <label class="form-label">Email (cannot be changed)</label>
+          <label class="form-label">Email</label>
           <input 
             type="email" 
             class="form-control bg-light" 
@@ -48,7 +43,7 @@
         </div>
         
         <div class="mb-3">
-          <label class="form-label">Username (cannot be changed)</label>
+          <label class="form-label">Username</label>
           <input 
             type="text" 
             class="form-control bg-light" 
@@ -111,32 +106,25 @@
       
       <!-- Loading state -->
       <div *ngIf="gradesLoading" class="text-center py-5">
-        <div class="spinner-border text-success" role="status">
+        <div class="spinner-border text-success mb-3" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
-        <p class="mt-2">Loading your grades...</p>
+        <p class="text-muted">Loading your grades...</p>
       </div>
       
       <!-- Error state -->
       <div *ngIf="gradesError" class="alert alert-danger">
         <div class="fw-bold">Error loading grades:</div>
         <p>{{ gradesError }}</p>
-        <div *ngIf="lastErrorDetails" class="mt-2 small">
-          <details>
-            <summary>Technical details</summary>
-            <pre class="mt-2 p-2 bg-light">{{ lastErrorDetails | json }}</pre>
-          </details>
-        </div>
         <button class="btn btn-sm btn-outline-danger mt-2" (click)="loadGrades()">Retry</button>
       </div>
       
       <!-- Empty state -->
       <div *ngIf="!gradesLoading && !gradesError && grades.length === 0" class="text-center py-5">
         <div class="text-muted">
-          <div class="fs-1">📚</div>
-          <p class="mt-3">You don't have any grades yet.</p>
-          <p class="small text-secondary">User ID: {{ userInfo.userId }}</p>
-          <button class="btn btn-sm btn-outline-primary mt-2" (click)="loadGrades()">
+          <div class="fs-1 mb-3">📚</div>
+          <p class="lead">You don't have any grades yet.</p>
+          <button class="btn btn-sm btn-outline-success mt-2" (click)="loadGrades()">
             Refresh Grades
           </button>
         </div>
@@ -238,32 +226,25 @@
       <!-- Shared states with grades tab -->
       <!-- Loading state -->
       <div *ngIf="gradesLoading" class="text-center py-5">
-        <div class="spinner-border text-success" role="status">
+        <div class="spinner-border text-success mb-3" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
-        <p class="mt-2">Loading your grade history...</p>
+        <p class="text-muted">Loading your grade history...</p>
       </div>
       
       <!-- Error state -->
       <div *ngIf="gradesError" class="alert alert-danger">
         <div class="fw-bold">Error loading grades:</div>
         <p>{{ gradesError }}</p>
-        <div *ngIf="lastErrorDetails" class="mt-2 small">
-          <details>
-            <summary>Technical details</summary>
-            <pre class="mt-2 p-2 bg-light">{{ lastErrorDetails | json }}</pre>
-          </details>
-        </div>
         <button class="btn btn-sm btn-outline-danger mt-2" (click)="loadGrades()">Retry</button>
       </div>
       
       <!-- Empty state -->
       <div *ngIf="!gradesLoading && !gradesError && grades.length === 0" class="text-center py-5">
         <div class="text-muted">
-          <div class="fs-1">📚</div>
-          <p class="mt-3">No grade history available yet.</p>
-          <p class="small text-secondary">User ID: {{ userInfo.userId }}</p>
-          <button class="btn btn-sm btn-outline-primary mt-2" (click)="loadGrades()">
+          <div class="fs-1 mb-3">📚</div>
+          <p class="lead">No grade history available yet.</p>
+          <button class="btn btn-sm btn-outline-success mt-2" (click)="loadGrades()">
             Refresh History
           </button>
         </div>
@@ -277,7 +258,7 @@
             <span class="text-muted">total grades</span>
           </div>
           <button class="btn btn-sm btn-outline-success" (click)="loadGrades()">
-            ↻ Refresh
+            <span class="me-1">↻</span> Refresh
           </button>
         </div>
         

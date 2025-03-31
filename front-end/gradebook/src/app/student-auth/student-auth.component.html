@@ -1,0 +1,124 @@
+<div class="auth-container mx-auto mt-5 p-4 shadow-sm bg-white rounded">
+    <h2 class="fw-bold text-center">Welcome to GradeTrack</h2>
+    <p class="text-muted text-center">Sign in or create a new account as a <span class="fw-bold text-success">STUDENT</span></p>
+  
+    <ul class="nav nav-tabs justify-content-center mb-4">
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="activeTab === 'login'" (click)="activeTab = 'login'">Login</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="activeTab === 'signup'" (click)="activeTab = 'signup'">Sign Up</a>
+      </li>
+    </ul>
+  
+    <!-- LOGIN FORM -->
+    <form *ngIf="activeTab === 'login'" (ngSubmit)="onLogin()">
+      <div class="mb-3">
+        <input 
+          type="email" 
+          class="form-control" 
+          placeholder="student@school.edu" 
+          [(ngModel)]="loginCredentials.email" 
+          name="email"
+          (input)="validateLoginForm()"
+          required />
+        <div class="error-text small" *ngIf="validationErrors.email">
+          {{ validationErrors.email }}
+        </div>
+      </div>
+      <div class="mb-2">
+        <input 
+          type="password" 
+          class="form-control" 
+          placeholder="Password" 
+          [(ngModel)]="loginCredentials.password" 
+          name="password"
+          (input)="validateLoginForm()"
+          required />
+        <div class="error-text small" *ngIf="validationErrors.password">
+          {{ validationErrors.password }}
+        </div>
+      </div>
+      
+      <div class="error-message text-center mb-2" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button 
+        type="submit" 
+        class="btn btn-dark w-100"
+        [disabled]="isLoading || !isLoginFormValid">
+        {{ isLoading ? 'Logging in...' : 'Login as Student' }}
+      </button>
+      
+      <p class="text-center mt-3 small">Not a student? <a routerLink="/teacher">Login as teacher</a></p>
+    </form>
+  
+    <!-- SIGNUP FORM -->
+    <form *ngIf="activeTab === 'signup'" (ngSubmit)="onSignup()">
+      <div class="row mb-2">
+        <div class="col">
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="First Name" 
+            [(ngModel)]="signupData.firstName"
+            name="firstName"
+            required />
+        </div>
+        <div class="col">
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Last Name" 
+            [(ngModel)]="signupData.lastName"
+            name="lastName"
+            required />
+        </div>
+      </div>
+      <input 
+        type="text" 
+        class="form-control mb-2" 
+        placeholder="Username" 
+        [(ngModel)]="signupData.username"
+        name="username"
+        required />
+      <input 
+        type="email" 
+        class="form-control mb-2" 
+        placeholder="Email" 
+        [(ngModel)]="signupData.email"
+        name="signupEmail"
+        required />
+      <input 
+        type="password" 
+        class="form-control mb-2" 
+        placeholder="Password" 
+        [(ngModel)]="signupData.password"
+        name="signupPassword"
+        required />
+      <input 
+        type="password" 
+        class="form-control mb-3" 
+        placeholder="Confirm Password" 
+        [(ngModel)]="signupData.confirmPassword"
+        name="confirmPassword"
+        required />
+      
+      <div class="error-message text-center mb-2" *ngIf="signupErrorMessage">
+        {{ signupErrorMessage }}
+      </div>
+      
+      <button 
+        type="submit" 
+        class="btn btn-dark w-100"
+        [disabled]="isSignupLoading">
+        {{ isSignupLoading ? 'Creating Account...' : 'Create Student Account' }}
+      </button>
+      <p class="text-center mt-3 small">
+        Already have an account? <a (click)="activeTab = 'login'">Login</a><br />
+        Want to sign up as a teacher? <a routerLink="/teacher">Sign up as teacher</a>
+      </p>
+    </form>
+  </div>
+  

@@ -1,1 +1,35 @@
 /* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
+
+body {
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Global styles for better input fields */
+.form-control {
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+/* Improve buttons */
+.btn {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* Common shadows */
+.shadow-custom {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Better spacing for sections */
+.section-spacing {
+  margin: 2.5rem 0;
+}

@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { AuthService } from './services/auth.service';
+import { GradeService } from './services/grade.service';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './interceptors/auth.interceptor';
 
@@ -12,5 +13,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(routes),
     AuthService,
+    GradeService,
   ],
 };

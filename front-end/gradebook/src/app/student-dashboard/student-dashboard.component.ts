@@ -3,16 +3,18 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, PasswordChangeRequest, ProfileUpdateRequest } from '../services/auth.service';
+import { GradeService, Grade } from '../services/grade.service';
+import { NgLetDirective } from './nglet.directive';
 
 @Component({
   selector: 'app-student-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, NgLetDirective],
   templateUrl: './student-dashboard.component.html',
   styleUrls: ['./student-dashboard.component.scss']
 })
 export class StudentDashboardComponent implements OnInit {
-  activeTab: 'profile' | 'password' = 'profile';
+  activeTab: 'profile' | 'password' | 'grades' | 'history' = 'grades';
   userData: ProfileUpdateRequest = {
     firstName: '',
     lastName: '',
@@ -22,7 +24,8 @@ export class StudentDashboardComponent implements OnInit {
 
   userInfo = {
     email: '',
-    username: ''
+    username: '',
+    userId: 0
   };
 
   passwordData: PasswordChangeRequest = {
@@ -31,13 +34,23 @@ export class StudentDashboardComponent implements OnInit {
     confirmPassword: ''
   };
 
+  grades: Grade[] = [];
+  gradesLoading = false;
+  gradesError = '';
+  lastErrorDetails: any = null;
+
   successMessage = '';
   errorMessage = '';
   isLoading = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService, 
+    private gradeService: GradeService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    console.log('StudentDashboardComponent initialized');
     // Check if user is logged in
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/student']);
@@ -58,18 +71,101 @@ export class StudentDashboardComponent implements OnInit {
       const parsedData = JSON.parse(userData);
       this.userInfo.email = parsedData.email || '';
       this.userInfo.username = parsedData.username || '';
+      this.userInfo.userId = parsedData.userId || 0;
       
       // Initial values for first and last name
-      // You would typically get these from an API call
       this.userData.firstName = parsedData.firstName || '';
       this.userData.lastName = parsedData.lastName || '';
     }
+    
+    // Set initial tab
+    console.log('Setting default tab to:', this.activeTab);
+    
+    // Load grades on init since the default tab is 'grades'
+    this.loadGrades();
   }
 
-  changeTab(tab: 'profile' | 'password'): void {
+  changeTab(tab: 'profile' | 'password' | 'grades' | 'history'): void {
+    console.log('Changing tab to:', tab);
     this.activeTab = tab;
     this.successMessage = '';
     this.errorMessage = '';
+    
+    // Load grades for both grades and history tabs
+    if ((tab === 'grades' || tab === 'history') && this.grades.length === 0) {
+      this.loadGrades();
+    }
+  }
+
+  loadGrades(): void {
+    if (!this.userInfo.userId) {
+      this.gradesError = 'User ID not found. Please try logging in again.';
+      return;
+    }
+    
+    this.gradesLoading = true;
+    this.gradesError = '';
+    this.lastErrorDetails = null;
+    
+    console.log('Starting to load grades for user ID:', this.userInfo.userId);
+    
+    this.gradeService.getStudentGrades(this.userInfo.userId).subscribe({
+      next: (grades) => {
+        console.log('Grades loaded successfully:', grades);
+        console.log('Number of grades:', grades.length);
+        console.log('First grade (if exists):', grades.length > 0 ? grades[0] : 'No grades');
+        this.grades = grades;
+        this.gradesLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading grades:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.error);
+        this.gradesError = 'Failed to load grades. Please try again later.';
+        this.gradesLoading = false;
+        
+        // Store error details for display
+        this.lastErrorDetails = {
+          status: error.status,
+          message: error.message,
+          details: error.error
+        };
+      }
+    });
+  }
+
+  // Calculate the percentage score for a grade
+  calculatePercentage(points: number, maxPoints: number): number {
+    return Math.round((points / maxPoints) * 100);
+  }
+
+  // Format a date string to a more readable format
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+
+  // Group grades by course
+  getGradesByCourse(): { courseName: string, grades: Grade[] }[] {
+    const courseMap = new Map<string, Grade[]>();
+    
+    this.grades.forEach(grade => {
+      const courseName = grade.assignment.class.course.name;
+      if (!courseMap.has(courseName)) {
+        courseMap.set(courseName, []);
+      }
+      courseMap.get(courseName)?.push(grade);
+    });
+    
+    return Array.from(courseMap).map(([courseName, grades]) => ({
+      courseName,
+      grades
+    }));
   }
 
   updateProfile(): void {
@@ -95,7 +191,16 @@ export class StudentDashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('Profile update error:', error);
-        this.errorMessage = error.error?.message || 'An error occurred while updating profile';
+        console.error('Status:', error.status);
+        console.error('Status Text:', error.statusText);
+        console.error('Error details:', error.error);
+        
+        if (error.status === 405) {
+          this.errorMessage = 'Method Not Allowed: The server doesn\'t support this request method for this endpoint.';
+        } else {
+          this.errorMessage = error.error?.message || 'An error occurred while updating profile';
+        }
+        
         this.isLoading = false;
       }
     });
@@ -166,5 +271,107 @@ export class StudentDashboardComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/']);
+  }
+
+  // Calculate overall average for all grades
+  calculateOverallAverage(): number {
+    if (this.grades.length === 0) return 0;
+    
+    const totalPoints = this.grades.reduce((sum, grade) => sum + grade.points, 0);
+    const totalMaxPoints = this.grades.reduce((sum, grade) => sum + grade.assignment.maxPoints, 0);
+    
+    return totalMaxPoints > 0 ? Math.round((totalPoints / totalMaxPoints) * 100) : 0;
+  }
+
+  // Calculate course average
+  calculateCourseAverage(grades: Grade[]): number {
+    if (grades.length === 0) return 0;
+    
+    const totalPoints = grades.reduce((sum, grade) => sum + grade.points, 0);
+    const totalMaxPoints = grades.reduce((sum, grade) => sum + grade.assignment.maxPoints, 0);
+    
+    return totalMaxPoints > 0 ? Math.round((totalPoints / totalMaxPoints) * 100) : 0;
+  }
+
+  // Add a method to get grades organized by date
+  getGradeHistory(): { date: string, grades: Grade[] }[] {
+    // Clone and sort grades by createdAt date (newest first)
+    const sortedGrades = [...this.grades].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    
+    // Group by date
+    const dateMap = new Map<string, Grade[]>();
+    
+    sortedGrades.forEach(grade => {
+      const dateKey = this.formatDate(grade.createdAt);
+      if (!dateMap.has(dateKey)) {
+        dateMap.set(dateKey, []);
+      }
+      dateMap.get(dateKey)?.push(grade);
+    });
+    
+    return Array.from(dateMap).map(([date, grades]) => ({
+      date,
+      grades
+    }));
+  }
+  
+  // Get the time part from a datetime string
+  formatTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit'
+    });
+  }
+  
+  // Calculate the day difference between two dates
+  getDaysSince(dateString: string): number {
+    const today = new Date();
+    const date = new Date(dateString);
+    const diffTime = Math.abs(today.getTime() - date.getTime());
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  }
+  
+  // Get a relative date description for a date
+  getRelativeDate(dateString: string): string {
+    const days = this.getDaysSince(dateString);
+    
+    if (days === 0) {
+      return 'Today';
+    } else if (days === 1) {
+      return 'Yesterday';
+    } else if (days <= 7) {
+      return `${days} days ago`;
+    } else {
+      return this.formatDate(dateString);
+    }
+  }
+  
+  // Get color class based on changes between grades
+  getChangeColorClass(current: number, previous: number): string {
+    if (!previous) return '';
+    
+    if (current > previous) {
+      return 'text-success';
+    } else if (current < previous) {
+      return 'text-danger';
+    } else {
+      return 'text-muted';
+    }
+  }
+  
+  // Find previous grade for the same assignment
+  findPreviousGrade(grade: Grade): Grade | null {
+    // Sort by date, oldest first
+    const sortedGrades = [...this.grades]
+      .filter(g => g.assignment.title === grade.assignment.title) // Same assignment
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    
+    if (sortedGrades.length <= 1) return null;
+    
+    const currentIndex = sortedGrades.findIndex(g => g.gradeId === grade.gradeId);
+    return currentIndex > 0 ? sortedGrades[currentIndex - 1] : null;
   }
 } 

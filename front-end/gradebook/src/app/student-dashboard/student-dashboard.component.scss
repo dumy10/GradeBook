@@ -1,4 +1,75 @@
-/* Using Bootstrap classes for styling instead of custom SCSS */
+/* Using Bootstrap classes for styling */
+
+.pointer {
+  cursor: pointer;
+}
+
+/* Make sure tab navigation is properly visible */
+.nav-tabs .nav-item .nav-link {
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  color: #6c757d;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.nav-tabs .nav-item .nav-link.active {
+  color: #198754;
+  font-weight: 600;
+  border-bottom: 2px solid #198754;
+  background-color: transparent;
+}
+
+.nav-tabs .nav-item .nav-link:hover:not(.active) {
+  border-bottom: 2px solid #e9ecef;
+  color: #495057;
+}
+
+/* Timeline styling */
+.timeline {
+  position: relative;
+  padding-left: 10px;
+}
+
+.timeline-item {
+  position: relative;
+}
+
+.timeline-date {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-card {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.timeline-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Grade history specific styles */
+.feedback-box {
+  border-left: 3px solid #198754;
+  font-style: italic;
+}
+
+.grade-meta {
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+}
+
+/* Ensure tab content is visible */
+.tab-content {
+  min-height: 300px;
+}
 
 .dashboard-container {
   max-width: 1000px;
@@ -67,13 +138,6 @@
       }
     }
   }
-}
-
-.tab-content {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .success-message {

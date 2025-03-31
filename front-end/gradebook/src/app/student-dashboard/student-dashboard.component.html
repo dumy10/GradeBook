@@ -1,0 +1,148 @@
+<div class="auth-container mx-auto mt-5 p-4 shadow-sm bg-white rounded">
+  <header class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Student Dashboard</h2>
+    <button class="btn btn-danger" (click)="logout()">Logout</button>
+  </header>
+
+  <ul class="nav nav-tabs justify-content-center mb-4">
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'profile'" (click)="changeTab('profile')">Profile</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'password'" (click)="changeTab('password')">Change Password</a>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Profile Tab -->
+    <div *ngIf="activeTab === 'profile'" class="profile-tab">
+      <h3 class="fw-bold mb-3 text-success">Your Profile</h3>
+      
+      <div *ngIf="successMessage" class="alert alert-success mb-3">
+        {{ successMessage }}
+      </div>
+      <div *ngIf="errorMessage" class="alert alert-danger mb-3">
+        {{ errorMessage }}
+      </div>
+      
+      <form (ngSubmit)="updateProfile()">
+        <!-- Read-only information -->
+        <div class="mb-3">
+          <label class="form-label">Email (cannot be changed)</label>
+          <input 
+            type="email" 
+            class="form-control bg-light" 
+            [value]="userInfo.email" 
+            readonly>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label">Username (cannot be changed)</label>
+          <input 
+            type="text" 
+            class="form-control bg-light" 
+            [value]="userInfo.username" 
+            readonly>
+        </div>
+        
+        <!-- Editable information -->
+        <div class="mb-3">
+          <label for="firstName" class="form-label">First Name</label>
+          <input 
+            type="text" 
+            id="firstName" 
+            name="firstName"
+            class="form-control"
+            [(ngModel)]="userData.firstName" 
+            required>
+        </div>
+        
+        <div class="mb-3">
+          <label for="lastName" class="form-label">Last Name</label>
+          <input 
+            type="text" 
+            id="lastName" 
+            name="lastName"
+            class="form-control"
+            [(ngModel)]="userData.lastName" 
+            required>
+        </div>
+        
+        <div class="mb-3">
+          <label for="phone" class="form-label">Phone Number</label>
+          <input 
+            type="tel" 
+            id="phone" 
+            name="phone"
+            class="form-control"
+            [(ngModel)]="userData.phone">
+        </div>
+        
+        <div class="mb-3">
+          <label for="address" class="form-label">Address</label>
+          <textarea 
+            id="address" 
+            name="address"
+            class="form-control"
+            rows="3"
+            [(ngModel)]="userData.address"></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-success w-100" [disabled]="isLoading">
+          {{ isLoading ? 'Updating...' : 'Update Profile' }}
+        </button>
+      </form>
+    </div>
+    
+    <!-- Change Password Tab -->
+    <div *ngIf="activeTab === 'password'" class="password-tab">
+      <h3 class="fw-bold mb-3 text-success">Change Password</h3>
+      
+      <div *ngIf="successMessage" class="alert alert-success mb-3">
+        {{ successMessage }}
+      </div>
+      <div *ngIf="errorMessage" class="alert alert-danger mb-3">
+        {{ errorMessage }}
+      </div>
+      
+      <form (ngSubmit)="changePassword()">
+        <div class="mb-3">
+          <label for="currentPassword" class="form-label">Current Password</label>
+          <input 
+            type="password" 
+            id="currentPassword" 
+            name="currentPassword"
+            class="form-control"
+            [(ngModel)]="passwordData.currentPassword" 
+            required>
+        </div>
+        
+        <div class="mb-3">
+          <label for="newPassword" class="form-label">New Password</label>
+          <input 
+            type="password" 
+            id="newPassword" 
+            name="newPassword"
+            class="form-control"
+            [(ngModel)]="passwordData.newPassword" 
+            required>
+        </div>
+        
+        <div class="mb-3">
+          <label for="confirmPassword" class="form-label">Confirm New Password</label>
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            name="confirmPassword"
+            class="form-control"
+            [(ngModel)]="passwordData.confirmPassword" 
+            required>
+        </div>
+        
+        <button type="submit" class="btn btn-success w-100" [disabled]="isLoading">
+          {{ isLoading ? 'Changing Password...' : 'Change Password' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div> 

@@ -45,7 +45,7 @@ export class StudentAuthComponent {
   signupErrorMessage: string = '';
   isLoading: boolean = false;
   isSignupLoading: boolean = false;
-  isLoginFormValid: boolean = false;
+  isLoginFormValid: boolean = true;
   validationErrors = {
     email: '',
     password: ''
@@ -100,25 +100,27 @@ export class StudentAuthComponent {
   }
 
   onLogin(): void {
-    console.log('Login button clicked', this.loginCredentials);
+    console.log('Student onLogin method called');
+    console.log('Form validation state:', this.isLoginFormValid);
     
     if (!this.isLoginFormValid) {
-      console.log('Form is not valid');
+      console.log('Form is not valid, returning');
       return;
     }
 
     this.isLoading = true;
     this.errorMessage = '';
 
+    console.log('Calling auth service login with:', this.loginCredentials);
+
     this.authService.login(this.loginCredentials).subscribe({
       next: (response) => {
-        console.log('Login response:', response);
+        console.log('Login response received:', response);
         if (response.success) {
-          // Check if the user has the correct role
-          if (response.role.toLowerCase() === 'student') {
-            
+          // Check if the user has the correct role using case-insensitive comparison
+          if (response.role.toUpperCase() === 'STUDENT') {
+            console.log('Navigating to student dashboard');
             this.router.navigate(['/student-dashboard']);
-            console.log(response);
           } else {
             // Use generic error message for wrong role
             this.errorMessage = 'Invalid username or password';
@@ -130,8 +132,14 @@ export class StudentAuthComponent {
         }
       },
       error: (error) => {
-        console.error('Login error:', error);
-        this.errorMessage = 'Invalid username or password';
+        console.log('Login error:', error);
+        
+        if (error.status === 0) {
+          this.errorMessage = 'Network or CORS error. Please check if the server is running and CORS is configured.';
+        } else {
+          this.errorMessage = error.error?.message || 'Invalid username or password';
+        }
+        
         this.resetFormState();
       },
       complete: () => {
@@ -183,12 +191,11 @@ export class StudentAuthComponent {
     
     // Start loading state
     this.isSignupLoading = true;
-    console.log(registerData);
+    
     // Call registration service
     this.authService.register(registerData).subscribe({
       next: (response) => {
         if (response.success) {
-          console.log(response);
           // Registration successful, navigate to dashboard
           this.router.navigate(['/student-dashboard']);
         } else {

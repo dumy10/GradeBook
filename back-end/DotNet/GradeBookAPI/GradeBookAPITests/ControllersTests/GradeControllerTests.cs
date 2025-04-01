@@ -197,7 +197,7 @@ namespace GradeBookAPITests.ControllersTests
             var result = await _controller.DeleteGrade(gradeId);
 
             // Assert
-            Assert.IsType<OkObjectResult>(result);
+            Assert.IsType<OkResult>(result);
         }
 
         [Fact]

@@ -1,6 +1,6 @@
 <div class="auth-container mx-auto mt-5 p-4 shadow-sm bg-white rounded">
     <h2 class="fw-bold text-center">Welcome to GradeTrack</h2>
-    <p class="text-muted text-center">Sign in or create a new account as a student</p>
+    <p class="text-muted text-center">Sign in or create a new account as a <span class="fw-bold text-primary">TEACHER</span></p>
 
     <ul class="nav nav-tabs justify-content-center mb-4">
       <li class="nav-item">
@@ -16,7 +16,7 @@
         <input 
           type="email" 
           class="form-control" 
-          placeholder="student@school.edu" 
+          placeholder="teacher@school.edu" 
           [(ngModel)]="loginCredentials.email" 
           name="email"
           (input)="validateLoginForm()"
@@ -47,9 +47,10 @@
         type="submit" 
         class="btn btn-dark w-100"
         [disabled]="isLoading || !isLoginFormValid">
-        {{ isLoading ? 'Logging in...' : 'Login' }}
+        {{ isLoading ? 'Logging in...' : 'Login as Teacher' }}
       </button>
-      <p class="text-center mt-3 small">Not a student? <a routerLink="/teacher">Login as teacher</a></p>
+      
+      <p class="text-center mt-3 small">Not a teacher? <a routerLink="/student">Login as student</a></p>
     </form>
 
     <form *ngIf="activeTab === 'signup'" (ngSubmit)="onSignup()">
@@ -110,11 +111,11 @@
         type="submit" 
         class="btn btn-dark w-100"
         [disabled]="isSignupLoading">
-        {{ isSignupLoading ? 'Creating Account...' : 'Create Account' }}
+        {{ isSignupLoading ? 'Creating Account...' : 'Create Teacher Account' }}
       </button>
       <p class="text-center mt-3 small">
         Already have an account? <a (click)="activeTab = 'login'">Login</a><br />
-        Want to sign up as a teacher? <a routerLink="/teacher">Sign up as teacher</a>
+        Want to sign up as a student? <a routerLink="/student">Sign up as student</a>
       </p>
     </form>
   </div>

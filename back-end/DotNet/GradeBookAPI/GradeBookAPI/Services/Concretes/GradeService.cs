@@ -110,7 +110,7 @@ namespace GradeBookAPI.Services.Concretes
                 existingGrade.Points = grade.Points;
                 existingGrade.Comment = grade.Comment;
                 existingGrade.GradedBy = grade.GradedBy;
-                existingGrade.UpdatedAt = DateTime.UtcNow;
+                existingGrade.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
 
                 _context.Grades.Update(existingGrade);
                 await _context.SaveChangesAsync();

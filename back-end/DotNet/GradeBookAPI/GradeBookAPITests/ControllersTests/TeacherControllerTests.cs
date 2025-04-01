@@ -55,8 +55,7 @@ namespace GradeBookAPITests.ControllersTests
             var result = await _controller.AddStudent(classId, request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal("Student added successfully.", okResult.Value);
+            var okResult = Assert.IsType<OkResult>(result);
         }
 
         [Fact]
@@ -108,8 +107,7 @@ namespace GradeBookAPITests.ControllersTests
             var result = await _controller.RemoveStudent(classId, studentId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal("Student removed successfully.", okResult.Value);
+            var okResult = Assert.IsType<OkResult>(result);
         }
 
         [Fact]
@@ -393,8 +391,8 @@ namespace GradeBookAPITests.ControllersTests
             int classId = 1;
             var students = new List<StudentDto>
             {
-                new StudentDto { StudentId = 1, FirstName = "John", LastName = "Doe", Email = "john@example.com" },
-                new StudentDto { StudentId = 2, FirstName = "Jane", LastName = "Smith", Email = "jane@example.com" }
+                new StudentDto { UserId = 1, FirstName = "John", LastName = "Doe", Email = "john@example.com" },
+                new StudentDto { UserId = 2, FirstName = "Jane", LastName = "Smith", Email = "jane@example.com" }
             };
 
             _mockTeacherService.Setup(service => service.GetStudentsInClassAsync(1, classId))

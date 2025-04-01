@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using GradeBookAPI.Logger;
+using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 namespace GradeBookAPITests.Helpers
@@ -17,6 +18,8 @@ namespace GradeBookAPITests.Helpers
             Environment.SetEnvironmentVariable("JWT_ISSUER", "test-issuer");
             Environment.SetEnvironmentVariable("JWT_AUDIENCE", "test-audience");
             Environment.SetEnvironmentVariable("JWT_EXPIRY_HOURS", "1");
+
+            Logger.SetTestMode(true);
         }
 
         /// <summary>

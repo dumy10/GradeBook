@@ -17,6 +17,9 @@ namespace GradeBookAPITests.ControllersTests
 
         public TeacherControllerTests()
         {
+            // Setup environment variables for token validation
+            AuthHelperMock.SetupEnvironmentVariables();
+
             // Setup mock service
             _mockTeacherService = new Mock<ITeacherService>();
             _controller = new TeacherController(_mockTeacherService.Object);
@@ -33,11 +36,9 @@ namespace GradeBookAPITests.ControllersTests
                 HttpContext = _httpContext
             };
 
-            // Setup environment variables for token validation
-            AuthHelperMock.SetupEnvironmentVariables();
-
             // Setup authentication in the HTTP context with TEACHER role
             AuthHelperMock.SetupHttpContext(_httpContext, 1, "TEACHER");
+
         }
 
         [Fact]

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Net;
 
-namespace GradeBookAPITests.ControllesTests
+namespace GradeBookAPITests.ControllerTests
 {
     public class AssignmentControllerTests
     {
@@ -53,7 +53,7 @@ namespace GradeBookAPITests.ControllesTests
                 Description = "This is a test assignment",
                 MaxPoints = 100,
                 MinPoints = 0,
-                DueDate = DateTime.Now.AddDays(7),
+                DueDate = DateTime.UtcNow,
                 TypeName = "Homework",
                 Weight = 10
             };

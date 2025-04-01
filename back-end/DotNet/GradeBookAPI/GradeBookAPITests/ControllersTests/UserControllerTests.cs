@@ -8,7 +8,7 @@ using Moq;
 using System.Net;
 using System.Reflection;
 
-namespace GradeBookAPITests.ControllesTests
+namespace GradeBookAPITests.ControllersTests
 {
     public class UserControllerTests
     {

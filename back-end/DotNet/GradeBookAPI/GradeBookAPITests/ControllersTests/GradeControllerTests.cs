@@ -1,4 +1,4 @@
-﻿namespace GradeBookAPITests.ControllesTests
+﻿namespace GradeBookAPITests.ControllersTests
 {
     public class GradeControllerTests
     {

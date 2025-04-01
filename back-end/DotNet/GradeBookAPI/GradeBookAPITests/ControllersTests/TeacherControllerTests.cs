@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Net;
 
-namespace GradeBookAPITests.ControllesTests
+namespace GradeBookAPITests.ControllersTests
 {
     public class TeacherControllerTests
     {

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Net;
+using System.Reflection;
 
 namespace GradeBookAPITests.ControllesTests
 {
@@ -62,24 +63,25 @@ namespace GradeBookAPITests.ControllesTests
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = okResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = okResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
-            var profileProp = responseType.GetProperty("Profile");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
+            PropertyInfo? profileProp = responseType.GetProperty("Profile");
 
             Assert.NotNull(successProp);
             Assert.NotNull(profileProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            var profile = profileProp.GetValue(responseObj);
+            object? successValue = successProp.GetValue(responseObj);
+            object? profileValue = profileProp.GetValue(responseObj);
 
-            Assert.True(success);
-            Assert.Same(userProfile, profile);
+            Assert.NotNull(successValue);
+            Assert.NotNull(profileValue);
+            Assert.True((bool)successValue);
+            Assert.Same(userProfile, profileValue);
         }
 
         [Fact]
@@ -87,31 +89,32 @@ namespace GradeBookAPITests.ControllesTests
         {
             // Arrange
             _mockUserService.Setup(service => service.GetUserProfileAsync(1))
-                .ReturnsAsync((UserProfileDto)null);
+                .ReturnsAsync((UserProfileDto?)null);
 
             // Act
             var result = await _controller.GetProfile();
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFoundResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = notFoundResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = notFoundResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
-            var messageProp = responseType.GetProperty("Message");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
+            PropertyInfo? messageProp = responseType.GetProperty("Message");
 
             Assert.NotNull(successProp);
             Assert.NotNull(messageProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            var message = (string)messageProp.GetValue(responseObj);
+            object? successValue = successProp.GetValue(responseObj);
+            object? messageValue = messageProp.GetValue(responseObj);
 
-            Assert.False(success);
-            Assert.Equal("User not found", message);
+            Assert.NotNull(successValue);
+            Assert.NotNull(messageValue);
+            Assert.False((bool)successValue);
+            Assert.Equal("User not found", (string)messageValue);
         }
 
         [Fact]
@@ -136,6 +139,7 @@ namespace GradeBookAPITests.ControllesTests
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
             Assert.Same(userDetails, okResult.Value);
         }
 
@@ -145,31 +149,32 @@ namespace GradeBookAPITests.ControllesTests
             // Arrange
             int userId = 2;
             _mockUserService.Setup(service => service.GetUserDetailsAsync(userId))
-                .ReturnsAsync((UserDetailsDto)null);
+                .ReturnsAsync((UserDetailsDto?)null);
 
             // Act
             var result = await _controller.GetUserDetails(userId);
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFoundResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = notFoundResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = notFoundResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
-            var messageProp = responseType.GetProperty("Message");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
+            PropertyInfo? messageProp = responseType.GetProperty("Message");
 
             Assert.NotNull(successProp);
             Assert.NotNull(messageProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            var message = (string)messageProp.GetValue(responseObj);
+            object? successValue = successProp.GetValue(responseObj);
+            object? messageValue = messageProp.GetValue(responseObj);
 
-            Assert.False(success);
-            Assert.Equal("User not found", message);
+            Assert.NotNull(successValue);
+            Assert.NotNull(messageValue);
+            Assert.False((bool)successValue);
+            Assert.Equal("User not found", (string)messageValue);
         }
 
         [Fact]
@@ -204,6 +209,7 @@ namespace GradeBookAPITests.ControllesTests
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
             Assert.Same(users, okResult.Value);
         }
 
@@ -212,31 +218,32 @@ namespace GradeBookAPITests.ControllesTests
         {
             // Arrange
             _mockUserService.Setup(service => service.GetAllUsersDetailsAsync())
-                .ReturnsAsync((IEnumerable<UserDetailsDto>)null);
+                    .ReturnsAsync((IEnumerable<UserDetailsDto>?)null!);
 
             // Act
             var result = await _controller.GetAllUsersDetails();
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.NotNull(notFoundResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = notFoundResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = notFoundResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
-            var messageProp = responseType.GetProperty("Message");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
+            PropertyInfo? messageProp = responseType.GetProperty("Message");
 
             Assert.NotNull(successProp);
             Assert.NotNull(messageProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            var message = (string)messageProp.GetValue(responseObj);
+            object? successValue = successProp.GetValue(responseObj);
+            object? messageValue = messageProp.GetValue(responseObj);
 
-            Assert.False(success);
-            Assert.Equal("No users found", message);
+            Assert.NotNull(successValue);
+            Assert.NotNull(messageValue);
+            Assert.False((bool)successValue);
+            Assert.Equal("No users found", (string)messageValue);
         }
 
         [Fact]
@@ -259,24 +266,25 @@ namespace GradeBookAPITests.ControllesTests
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = okResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = okResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
-            var messageProp = responseType.GetProperty("Message");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
+            PropertyInfo? messageProp = responseType.GetProperty("Message");
 
             Assert.NotNull(successProp);
             Assert.NotNull(messageProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            var message = (string)messageProp.GetValue(responseObj);
+            object? successValue = successProp.GetValue(responseObj);
+            object? messageValue = messageProp.GetValue(responseObj);
 
-            Assert.True(success);
-            Assert.Equal("Profile updated successfully", message);
+            Assert.NotNull(successValue);
+            Assert.NotNull(messageValue);
+            Assert.True((bool)successValue);
+            Assert.Equal("Profile updated successfully", (string)messageValue);
         }
 
         [Fact]
@@ -299,24 +307,25 @@ namespace GradeBookAPITests.ControllesTests
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequestResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = badRequestResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = badRequestResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
-            var messageProp = responseType.GetProperty("Message");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
+            PropertyInfo? messageProp = responseType.GetProperty("Message");
 
             Assert.NotNull(successProp);
             Assert.NotNull(messageProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            var message = (string)messageProp.GetValue(responseObj);
+            object? successValue = successProp.GetValue(responseObj);
+            object? messageValue = messageProp.GetValue(responseObj);
 
-            Assert.False(success);
-            Assert.Equal("Failed to update profile", message);
+            Assert.NotNull(successValue);
+            Assert.NotNull(messageValue);
+            Assert.False((bool)successValue);
+            Assert.Equal("Failed to update profile", (string)messageValue);
         }
 
         [Fact]
@@ -336,19 +345,20 @@ namespace GradeBookAPITests.ControllesTests
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequestResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = badRequestResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = badRequestResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
 
             Assert.NotNull(successProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            Assert.False(success);
+            object? successValue = successProp.GetValue(responseObj);
+
+            Assert.NotNull(successValue);
+            Assert.False((bool)successValue);
         }
 
         [Fact]
@@ -370,24 +380,25 @@ namespace GradeBookAPITests.ControllesTests
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.NotNull(okResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = okResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = okResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
-            var messageProp = responseType.GetProperty("Message");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
+            PropertyInfo? messageProp = responseType.GetProperty("Message");
 
             Assert.NotNull(successProp);
             Assert.NotNull(messageProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            var message = (string)messageProp.GetValue(responseObj);
+            object? successValue = successProp.GetValue(responseObj);
+            object? messageValue = messageProp.GetValue(responseObj);
 
-            Assert.True(success);
-            Assert.Equal("Password changed successfully", message);
+            Assert.NotNull(successValue);
+            Assert.NotNull(messageValue);
+            Assert.True((bool)successValue);
+            Assert.Equal("Password changed successfully", (string)messageValue);
         }
 
         [Fact]
@@ -409,24 +420,25 @@ namespace GradeBookAPITests.ControllesTests
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequestResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = badRequestResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = badRequestResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
-            var messageProp = responseType.GetProperty("Message");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
+            PropertyInfo? messageProp = responseType.GetProperty("Message");
 
             Assert.NotNull(successProp);
             Assert.NotNull(messageProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            var message = (string)messageProp.GetValue(responseObj);
+            object? successValue = successProp.GetValue(responseObj);
+            object? messageValue = messageProp.GetValue(responseObj);
 
-            Assert.False(success);
-            Assert.Equal("Current password is incorrect", message);
+            Assert.NotNull(successValue);
+            Assert.NotNull(messageValue);
+            Assert.False((bool)successValue);
+            Assert.Equal("Current password is incorrect", (string)messageValue);
         }
 
         [Fact]
@@ -447,19 +459,20 @@ namespace GradeBookAPITests.ControllesTests
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.NotNull(badRequestResult.Value);
 
-            // Convert to anonymous object to avoid dynamic
-            var responseObj = badRequestResult.Value as object;
-            Assert.NotNull(responseObj);
+            // Extract properties safely
+            var responseObj = badRequestResult.Value;
+            Type responseType = responseObj.GetType();
 
-            // Get properties using reflection to avoid dynamic
-            var responseType = responseObj.GetType();
-            var successProp = responseType.GetProperty("Success");
+            PropertyInfo? successProp = responseType.GetProperty("Success");
 
             Assert.NotNull(successProp);
 
-            var success = (bool)successProp.GetValue(responseObj);
-            Assert.False(success);
+            object? successValue = successProp.GetValue(responseObj);
+
+            Assert.NotNull(successValue);
+            Assert.False((bool)successValue);
         }
     }
 }

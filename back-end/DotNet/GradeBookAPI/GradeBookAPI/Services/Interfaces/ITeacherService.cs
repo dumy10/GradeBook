@@ -1,4 +1,5 @@
-﻿using GradeBookAPI.DTOs.DataDTOs;
+﻿using GradeBookAPI.DTOs.AuthDTOs;
+using GradeBookAPI.DTOs.DataDTOs;
 
 namespace GradeBookAPI.Services.Interfaces
 {
@@ -18,5 +19,7 @@ namespace GradeBookAPI.Services.Interfaces
         Task<bool> RemoveStudentsFromClassAsync(int teacherId, int classId, RemoveStudentsRequest request);
 
         Task<IEnumerable<StudentDto>> GetStudentsInClassAsync(int teacherId, int classId);
+        Task<IEnumerable<UserDetailsDto>> GetUsersByNameAsync(string name);
+        Task<IEnumerable<ClassDto>> GetClassesByNameAsync(int teacherId, string name);
     }
 }

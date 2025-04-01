@@ -502,7 +502,7 @@ namespace GradeBookAPI.Controllers
                 Points = request.Points,
                 Comment = request.Comment,
                 GradedBy = teacherId,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)
             };
 
             try
@@ -587,7 +587,7 @@ namespace GradeBookAPI.Controllers
                 successLog.CreatedAt = DateTime.UtcNow;
                 GradeLogger.Instance.LogMessage(successLog);
 
-                return Ok("Grade deleted successfully.");
+                return Ok();
             }
             catch (Exception ex)
             {

@@ -80,7 +80,7 @@ namespace GradeBookAPI.Controllers
             successLog.Details = JsonSerializer.Serialize(new { message = "Student added successfully", studentId = request.StudentId, classId = classId });
             successLog.CreatedAt = DateTime.UtcNow;
             GradeLogger.Instance.LogMessage(successLog);
-            return Ok("Student added successfully.");
+            return Ok();
         }
 
         // DELETE api/Teacher/classes/{classId}/students/{studentId}
@@ -123,7 +123,7 @@ namespace GradeBookAPI.Controllers
             successLog.Details = JsonSerializer.Serialize(new { message = "Student removed successfully", studentId = studentId, classId = classId });
             successLog.CreatedAt = DateTime.UtcNow;
             GradeLogger.Instance.LogMessage(successLog);
-            return Ok("Student removed successfully.");
+            return Ok();
         }
 
         // POST api/Teacher/classes/{classId}/students/batch
@@ -533,6 +533,113 @@ namespace GradeBookAPI.Controllers
             GradeLogger.Instance.LogMessage(successLog);
 
             return Ok(students);
+        }
+        // GET api/Teacher/users/search
+        [HttpGet("users/search/{studentName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetUsersByName(string studentName)
+        {
+            if (!AuthHelper.IsTeacher(HttpContext, out int teacherId))
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetUsersByName";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+                return Unauthorized("Invalid or expired token.");
+            }
+
+            if (string.IsNullOrWhiteSpace(studentName))
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetUsersByName";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Name search parameter is required" });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+                return BadRequest("Name search parameter is required.");
+            }
+
+            var users = await _teacherService.GetUsersByNameAsync(studentName);
+
+            if (users.IsNullOrEmpty())
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetUsersByName";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "No users found matching the search criteria", studentName });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+
+                return NotFound("No users found matching the search criteria.");
+            }
+
+            var successLog = AuditLog;
+            successLog.UserId = teacherId;
+            successLog.Action = "GetUsersByName";
+            successLog.Details = JsonSerializer.Serialize(new { message = "Users retrieved successfully", studentName });
+            successLog.CreatedAt = DateTime.UtcNow;
+            GradeLogger.Instance.LogMessage(successLog);
+
+            return Ok(users);
+        }
+
+        // GET api/Teacher/classes/search
+        [HttpGet("classes/search/{className}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetClassesByName(string className)
+        {
+            if (!AuthHelper.IsTeacher(HttpContext, out int teacherId))
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetClassesByName";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Invalid or expired token", teacherId });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+                return Unauthorized("Invalid or expired token.");
+            }
+
+            if (string.IsNullOrWhiteSpace(className))
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetClassesByName";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "Name search parameter is required" });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+                return BadRequest("Name search parameter is required.");
+            }
+
+            var classes = await _teacherService.GetClassesByNameAsync(teacherId, className);
+
+            if (classes.IsNullOrEmpty())
+            {
+                var auditLog = AuditLog;
+                auditLog.UserId = teacherId;
+                auditLog.Action = "GetClassesByName";
+                auditLog.Details = JsonSerializer.Serialize(new { message = "No classes found matching the search criteria", className });
+                auditLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(auditLog);
+
+                return NotFound("No classes found matching the search criteria.");
+            }
+
+            var successLog = AuditLog;
+            successLog.UserId = teacherId;
+            successLog.Action = "GetClassesByName";
+            successLog.Details = JsonSerializer.Serialize(new { message = "Classes retrieved successfully", className });
+            successLog.CreatedAt = DateTime.UtcNow;
+            GradeLogger.Instance.LogMessage(successLog);
+
+            return Ok(classes);
         }
     }
 }

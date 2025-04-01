@@ -1,4 +1,5 @@
 ﻿using GradeBookAPI.Data;
+using GradeBookAPI.DTOs.AuthDTOs;
 using GradeBookAPI.DTOs.DataDTOs;
 using GradeBookAPI.Entities;
 using GradeBookAPI.Services.Interfaces;
@@ -276,14 +277,69 @@ namespace GradeBookAPI.Services.Concretes
                 .Include(e => e.Student)
                 .Select(e => new StudentDto
                 {
-                    StudentId = e.Student!.UserId,
+                    UserId = e.Student!.UserId,
                     FirstName = e.Student.Profile!.FirstName,
-                    LastName = e.Student.Profile.FirstName,
+                    LastName = e.Student.Profile.LastName,
                     Email = e.Student.Email
                 })
                 .ToListAsync();
 
             return students;
+        }
+        public async Task<IEnumerable<UserDetailsDto>> GetUsersByNameAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return [];
+
+            // Convert to lowercase for case-insensitive search
+            string searchTerm = name.ToLower();
+
+            return await _context.Users
+                .Include(u => u.Profile)
+                .Where(u => u.Profile != null &&
+                    (u.Profile.FirstName.ToLower().Contains(searchTerm) ||
+                    u.Profile.LastName.ToLower().Contains(searchTerm) ||
+                    u.Email.ToLower().Contains(searchTerm) ||
+                    u.Username.ToLower().Contains(searchTerm)))
+                .Select(u => new UserDetailsDto
+                {
+                    UserId = u.UserId,
+                    Email = u.Email,
+                    FirstName = u.Profile!.FirstName,
+                    LastName = u.Profile!.LastName,
+                    Role = u.Role.ToUpperInvariant()
+                })
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<ClassDto>> GetClassesByNameAsync(int teacherId, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return [];
+
+            // Convert to lowercase for case-insensitive search
+            string searchTerm = name.ToLower();
+
+            return await _context.Classes
+                .Include(c => c.Course)
+                .Where(c => c.TeacherId == teacherId &&
+                    (c.Course != null &&
+                    (c.Course.CourseName.ToLower().Contains(searchTerm) ||
+                    c.Course.CourseCode.ToLower().Contains(searchTerm) ||
+                    c.Semester.ToLower().Contains(searchTerm) ||
+                    c.AcademicYear.ToLower().Contains(searchTerm))))
+                .Select(c => new ClassDto
+                {
+                    ClassId = c.ClassId,
+                    CourseId = c.CourseId,
+                    Semester = c.Semester,
+                    AcademicYear = c.AcademicYear,
+                    StartDate = c.StartDate,
+                    EndDate = c.EndDate,
+                    CreatedAt = c.CreatedAt,
+                    UpdatedAt = c.UpdatedAt
+                })
+                .ToListAsync();
         }
     }
 }

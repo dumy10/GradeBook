@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService, PasswordChangeRequest, ProfileUpdateRequest } from '../services/auth.service';
 import { ClassService, Student, Class } from '../services/class.service';
 import { GradeService, Grade, CreateGradeRequest, UpdateGradeRequest, Assignment } from '../services/grade.service';
+import { catchError, tap, forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -81,6 +82,54 @@ export class TeacherDashboardComponent implements OnInit {
   // Grade History modal
   showGradeHistoryModal = false;
   selectedGradeHistory: any = null;
+
+  // Modals state
+  showBulkGradeModal = false;
+  showGradeUploadModal = false;
+  
+  // Bulk grading
+  bulkGradeForm: {
+    assignmentId: any;
+    selectAll: boolean;
+    students: Array<{
+      userId: number;
+      selected: boolean;
+      points: number;
+      comment: string;
+    }>;
+  } = {
+    assignmentId: '',
+    selectAll: false,
+    students: []
+  };
+  
+  // File upload renamed to Quick Grade Form
+  gradeUploadForm: {
+    assignmentId: any;
+    file: File | null;
+  } = {
+    assignmentId: '',
+    file: null
+  };
+  
+  // Quick bulk grading
+  quickGradeEntries: Array<{
+    studentId: number;
+    studentName: string;
+    selected: boolean;
+    points: number;
+    comment: string;
+  }> = [];
+  
+  quickGradeDefaults: {
+    selectAll: boolean;
+    points: number;
+    comment: string;
+  } = {
+    selectAll: false,
+    points: 0,
+    comment: ''
+  };
 
   constructor(
     private authService: AuthService, 
@@ -928,5 +977,338 @@ export class TeacherDashboardComponent implements OnInit {
   closeGradeHistoryModal(): void {
     this.showGradeHistoryModal = false;
     this.selectedGradeHistory = null;
+  }
+
+  /**
+   * Get assignment by ID
+   */
+  getAssignmentById(assignmentId: any): any {
+    if (!assignmentId) return null;
+    const id = Number(assignmentId);
+    return this.assignments.find(a => a.assignmentId === id);
+  }
+
+  /**
+   * Open bulk grade modal
+   */
+  openBulkGradeModal(): void {
+    if (!this.selectedClass || this.assignments.length === 0 || this.studentsInClass.length === 0) {
+      this.errorMessage = 'Cannot bulk grade: Make sure class has assignments and students';
+      return;
+    }
+    
+    this.bulkGradeForm = {
+      assignmentId: '',
+      selectAll: false,
+      students: this.studentsInClass.map(student => ({
+        userId: student.userId,
+        selected: false,
+        points: 0,
+        comment: ''
+      }))
+    };
+    
+    this.showBulkGradeModal = true;
+  }
+  
+  /**
+   * Close bulk grade modal
+   */
+  closeBulkGradeModal(): void {
+    this.showBulkGradeModal = false;
+    this.bulkGradeForm = {
+      assignmentId: '',
+      selectAll: false,
+      students: []
+    };
+  }
+  
+  /**
+   * Toggle all students in bulk grade form
+   */
+  toggleAllStudents(): void {
+    this.bulkGradeForm.students.forEach(student => {
+      student.selected = this.bulkGradeForm.selectAll;
+    });
+  }
+  
+  /**
+   * Get count of selected students in bulk grade form
+   */
+  getSelectedStudentCount(): number {
+    return this.bulkGradeForm.students.filter(s => s.selected).length;
+  }
+  
+  /**
+   * Open dialog to fill all selected students with same points
+   */
+  bulkFillPoints(): void {
+    const selectedStudents = this.bulkGradeForm.students.filter(s => s.selected);
+    if (selectedStudents.length === 0) {
+      this.errorMessage = 'Please select at least one student first';
+      return;
+    }
+    
+    const pointsValue = prompt('Enter points for all selected students:');
+    if (pointsValue === null) return; // User cancelled
+    
+    const points = Number(pointsValue);
+    if (isNaN(points)) {
+      this.errorMessage = 'Please enter a valid number';
+      return;
+    }
+    
+    const assignment = this.getAssignmentById(this.bulkGradeForm.assignmentId);
+    if (!assignment) return;
+    
+    const minPoints = assignment.minPoints || 0;
+    const maxPoints = assignment.maxPoints;
+    
+    if (points < minPoints || points > maxPoints) {
+      this.errorMessage = `Points must be between ${minPoints} and ${maxPoints}`;
+      return;
+    }
+    
+    // Update points for all selected students
+    this.bulkGradeForm.students.forEach(student => {
+      if (student.selected) {
+        student.points = points;
+      }
+    });
+  }
+  
+  /**
+   * Check if bulk grades can be submitted
+   */
+  canSubmitBulkGrades(): boolean {
+    if (!this.bulkGradeForm.assignmentId) return false;
+    
+    const selectedStudents = this.bulkGradeForm.students.filter(s => s.selected);
+    if (selectedStudents.length === 0) return false;
+    
+    // Check if all selected students have valid points
+    const assignment = this.getAssignmentById(this.bulkGradeForm.assignmentId);
+    if (!assignment) return false;
+    
+    const minPoints = assignment.minPoints || 0;
+    const maxPoints = assignment.maxPoints;
+    
+    return selectedStudents.every(s => {
+      return !isNaN(s.points) && s.points >= minPoints && s.points <= maxPoints;
+    });
+  }
+  
+  /**
+   * Submit bulk grades
+   */
+  submitBulkGrades(): void {
+    if (!this.canSubmitBulkGrades()) return;
+    
+    const selectedStudents = this.bulkGradeForm.students.filter(s => s.selected);
+    const assignment = this.getAssignmentById(this.bulkGradeForm.assignmentId);
+    
+    this.isLoading = true;
+    let successCount = 0;
+    let errorCount = 0;
+    
+    // Create observables for each grade creation
+    const gradeRequests = selectedStudents.map(student => {
+      const gradeData = {
+        assignmentId: Number(this.bulkGradeForm.assignmentId),
+        studentId: student.userId,
+        points: student.points,
+        comment: student.comment
+      };
+      
+      return this.gradeService.createGrade(gradeData).pipe(
+        catchError(error => {
+          console.error(`Error creating grade for student ${student.userId}:`, error);
+          errorCount++;
+          return of(null); // Return null on error but don't break the sequence
+        }),
+        tap(result => {
+          if (result) successCount++;
+        })
+      );
+    });
+    
+    // Execute all requests in parallel
+    forkJoin(gradeRequests).subscribe({
+      next: () => {
+        this.isLoading = false;
+        if (errorCount === 0) {
+          this.successMessage = `Successfully added ${successCount} grades`;
+        } else {
+          this.successMessage = `Added ${successCount} grades, failed to add ${errorCount} grades`;
+        }
+        
+        // Refresh grades list
+        this.loadGradesForClass(this.selectedClass!.classId);
+        this.closeBulkGradeModal();
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = 'An error occurred while submitting grades';
+        console.error('Bulk grade submission error:', error);
+      }
+    });
+  }
+  
+  /**
+   * Open quick bulk grade modal (replaces file upload)
+   */
+  openQuickBulkGradeModal(): void {
+    if (!this.selectedClass || this.assignments.length === 0 || this.studentsInClass.length === 0) {
+      this.errorMessage = 'Cannot bulk grade: Make sure class has assignments and students';
+      return;
+    }
+    
+    this.gradeUploadForm = {
+      assignmentId: '',
+      file: null
+    };
+    this.quickGradeEntries = [];
+    this.quickGradeDefaults = {
+      selectAll: false,
+      points: 0,
+      comment: ''
+    };
+    
+    this.showGradeUploadModal = true;
+  }
+  
+  /**
+   * Close quick bulk grade modal
+   */
+  closeGradeUploadModal(): void {
+    this.showGradeUploadModal = false;
+    this.gradeUploadForm = {
+      assignmentId: '',
+      file: null
+    };
+    this.quickGradeEntries = [];
+  }
+  
+  /**
+   * Prepare quick bulk grade data when assignment is selected
+   */
+  prepareQuickBulkGradeData(): void {
+    if (!this.gradeUploadForm.assignmentId) return;
+    
+    const assignment = this.getAssignmentById(this.gradeUploadForm.assignmentId);
+    if (!assignment) return;
+    
+    // Set default points to max points if not set
+    if (!this.quickGradeDefaults.points) {
+      this.quickGradeDefaults.points = assignment.maxPoints;
+    }
+    
+    // Create entry for each student
+    this.quickGradeEntries = this.studentsInClass.map(student => ({
+      studentId: student.userId,
+      studentName: `${student.firstName} ${student.lastName}`,
+      selected: false,
+      points: 0,
+      comment: ''
+    }));
+    
+    // Sort by name
+    this.sortQuickGradesByName();
+  }
+  
+  /**
+   * Toggle all students in quick grade form
+   */
+  toggleAllQuickGrades(): void {
+    this.quickGradeEntries.forEach(entry => {
+      entry.selected = this.quickGradeDefaults.selectAll;
+    });
+  }
+  
+  /**
+   * Apply default values to all selected entries
+   */
+  applyDefaultValues(): void {
+    const selectedEntries = this.quickGradeEntries.filter(entry => entry.selected);
+    if (selectedEntries.length === 0) {
+      this.errorMessage = 'Please select at least one student first';
+      return;
+    }
+    
+    selectedEntries.forEach(entry => {
+      entry.points = this.quickGradeDefaults.points;
+      entry.comment = this.quickGradeDefaults.comment;
+    });
+  }
+  
+  /**
+   * Sort quick grade entries by student name
+   */
+  sortQuickGradesByName(): void {
+    this.quickGradeEntries.sort((a, b) => a.studentName.localeCompare(b.studentName));
+  }
+  
+  /**
+   * Get count of selected students in quick grade form
+   */
+  getSelectedQuickGradeCount(): number {
+    return this.quickGradeEntries.filter(entry => entry.selected).length;
+  }
+  
+  /**
+   * Check if quick grades can be submitted
+   */
+  canSubmitQuickGrades(): boolean {
+    if (!this.gradeUploadForm.assignmentId) return false;
+    
+    const selectedEntries = this.quickGradeEntries.filter(entry => entry.selected);
+    if (selectedEntries.length === 0) return false;
+    
+    // Check if all selected entries have valid points
+    const assignment = this.getAssignmentById(this.gradeUploadForm.assignmentId);
+    if (!assignment) return false;
+    
+    const minPoints = assignment.minPoints || 0;
+    const maxPoints = assignment.maxPoints;
+    
+    return selectedEntries.every(entry => {
+      return !isNaN(entry.points) && entry.points >= minPoints && entry.points <= maxPoints;
+    });
+  }
+  
+  /**
+   * Submit quick grades
+   */
+  submitQuickGrades(): void {
+    if (!this.canSubmitQuickGrades()) return;
+    
+    const selectedEntries = this.quickGradeEntries.filter(entry => entry.selected);
+    
+    // Create grade requests
+    const gradeRequests = selectedEntries.map(entry => ({
+      assignmentId: Number(this.gradeUploadForm.assignmentId),
+      studentId: entry.studentId,
+      points: entry.points,
+      comment: entry.comment
+    }));
+    
+    this.isLoading = true;
+    
+    // Use the batch create method
+    this.gradeService.createGradesBatch(gradeRequests).subscribe({
+      next: (result) => {
+        this.isLoading = false;
+        this.successMessage = `Successfully added ${gradeRequests.length} grades`;
+        
+        // Refresh grades list
+        this.loadGradesForClass(this.selectedClass!.classId);
+        this.closeGradeUploadModal();
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.message || 'An error occurred while submitting grades';
+        console.error('Quick grade submission error:', error);
+      }
+    });
   }
 } 

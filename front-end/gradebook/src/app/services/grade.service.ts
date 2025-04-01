@@ -249,12 +249,35 @@ export class GradeService {
   // Create multiple grades at once
   createGradesBatch(gradeRequests: CreateGradeRequest[]): Observable<any> {
     const headers = this.authService.getAuthHeaders();
+    
+    // Ensure all data types are correct for each grade
+    const preparedPayload = gradeRequests.map(request => ({
+      assignmentId: Number(request.assignmentId),
+      studentId: Number(request.studentId),
+      points: Number(request.points),
+      comment: request.comment || ''
+    }));
+    
+    console.log('Creating batch grades with payload:', preparedPayload);
+    
     return this.http.post<any>(
       `${this.API_URL}/Grade/batch`,
-      gradeRequests,
+      preparedPayload,
       { headers }
     ).pipe(
-      catchError(this.handleError)
+      catchError((error) => {
+        console.error('Error in createGradesBatch:', error);
+        
+        // Create a helpful error message
+        let errorMessage = 'Failed to create bulk grades';
+        if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 400) {
+          errorMessage = 'Invalid grade data in batch. Please check all fields and try again.';
+        }
+        
+        return throwError(() => new Error(errorMessage));
+      })
     );
   }
 

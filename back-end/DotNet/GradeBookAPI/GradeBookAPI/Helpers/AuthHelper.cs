@@ -1,4 +1,7 @@
-﻿using System.Security.Claims;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace GradeBookAPI.Helpers
 {
@@ -13,9 +16,7 @@ namespace GradeBookAPI.Helpers
         public static bool IsAuthenticated(HttpContext httpContext, out int userId)
         {
             return TryGetUserId(httpContext, out userId) && 
-                !IsTokenExpired(httpContext.User) && 
-                IsIssuerValid(httpContext.User) && 
-                IsAudienceValid(httpContext.User);
+                IsTokenValid(httpContext);
         }
 
         public static bool IsTeacher(HttpContext httpContext, out int teacherId)
@@ -45,31 +46,45 @@ namespace GradeBookAPI.Helpers
             return string.Equals(roleClaim, role.ToString(), StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool IsIssuerValid(ClaimsPrincipal user)
+        private static bool IsTokenValid(HttpContext httpContext)
         {
-            var issuerClaim = user.FindFirst("iss")?.Value;
-            var expectedIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
-            return string.Equals(issuerClaim, expectedIssuer, StringComparison.Ordinal);
-        }
+            var token = GetTokenFromHeader(httpContext.Request);
+            if (string.IsNullOrEmpty(token))
+                return false;
 
-        private static bool IsAudienceValid(ClaimsPrincipal user)
-        {
-            var audienceClaim = user.FindFirst("aud")?.Value;
-            var expectedAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
-            return string.Equals(audienceClaim, expectedAudience, StringComparison.Ordinal);
-        }
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(Environment.GetEnvironmentVariable("JWT_SECRET")!);
 
-        private static bool IsTokenExpired(ClaimsPrincipal user)
-        {
-            var expClaim = user.FindFirst("exp")?.Value;
-            if (expClaim != null && long.TryParse(expClaim, out long expSeconds))
+            var validationParameters = new TokenValidationParameters
             {
-                var expTime = DateTimeOffset.FromUnixTimeSeconds(expSeconds).UtcDateTime;
-                if (expTime < DateTime.UtcNow)
-                    return true;
-            }
+                ValidateIssuerSigningKey = true, // Verify the signature key
+                IssuerSigningKey = new SymmetricSecurityKey(key), // Set the key
+                ValidateIssuer = true, // Validate the issuer
+                ValidateAudience = true, // Validate the audience
+                ValidateLifetime = true, // Validate the token expiration
+                ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"), // Set the issuer
+                ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") // Set the audience
+            };
 
-            return false;
+            try
+            {
+                tokenHandler.ValidateToken(token, validationParameters, out _);
+                return true; // Token is valid
+            }
+            catch
+            {
+                return false; // Token is not valid
+            }
+        }
+
+        private static string? GetTokenFromHeader(HttpRequest request)
+        {
+            var authHeader = request.Headers.Authorization.ToString();
+
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            return authHeader["Bearer ".Length..].Trim();
         }
     }
 }

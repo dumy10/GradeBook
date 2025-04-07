@@ -1,0 +1,230 @@
+<h3 class="fw-bold mb-3 text-primary">Class Management</h3>
+
+<div *ngIf="successMessage" class="alert alert-success mb-3">
+  {{ successMessage }}
+</div>
+<div *ngIf="errorMessage" class="alert alert-danger mb-3">
+  {{ errorMessage }}
+</div>
+
+<div class="row g-4">
+  <!-- Classes List -->
+  <div class="col-md-4">
+    <div class="card h-100 border-primary">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">Classes</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search classes..."
+            [(ngModel)]="searchClassTerm"
+            (input)="searchClasses(searchClassTerm)"
+          />
+        </div>
+
+        <div *ngIf="classLoading" class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+
+        <div
+          *ngIf="!classLoading && classes.length === 0"
+          class="text-center text-muted"
+        >
+          No classes found
+        </div>
+
+        <div class="list-group">
+          <button
+            *ngFor="let classItem of classes"
+            class="list-group-item list-group-item-action mb-2 border-left-primary"
+            [class.active]="
+              selectedClass && selectedClass.classId === classItem.classId
+            "
+            (click)="selectClass(classItem)"
+          >
+            <div class="d-flex flex-column">
+              <div class="fw-bold mb-1 text-primary">
+                Class {{ classItem.classId }}
+              </div>
+              <div class="fw-semibold mb-1">
+                Course: {{ classItem.courseId }}
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                  <div>
+                    <i class="fas fa-graduation-cap me-1"></i>Year
+                    {{ classItem.academicYear }} - Sem {{ classItem.semester }}
+                  </div>
+                  <div>
+                    <i class="fas fa-hashtag me-1"></i>Class ID:
+                    {{ classItem.classId }}
+                  </div>
+                </div>
+                <div class="text-muted small text-end">
+                  <div>
+                    <i class="far fa-calendar-alt me-1"></i
+                    >{{ classItem.startDate | date : "MMM d" }} -
+                    {{ classItem.endDate | date : "MMM d, y" }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Students in Class -->
+  <div class="col-md-8">
+    <div class="card h-100">
+      <div
+        class="card-header bg-primary text-white d-flex justify-content-between align-items-center"
+      >
+        <h5 class="card-title mb-0">
+          {{ selectedClass ? "Students in Selected Class" : "Select a Class" }}
+        </h5>
+        <span *ngIf="selectedClass" class="badge bg-light text-dark p-2">
+          Class ID: {{ selectedClass.classId }} | Year
+          {{ selectedClass.academicYear }} - Semester
+          {{ selectedClass.semester }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div *ngIf="!selectedClass" class="text-center text-muted p-5">
+          Please select a class from the left panel
+        </div>
+
+        <div *ngIf="selectedClass">
+          <!-- Class details summary -->
+          <div class="mb-4 p-3 bg-light rounded class-details">
+            <h6 class="border-bottom pb-2 mb-3">Class Details</h6>
+            <div class="row">
+              <div class="col-md-6">
+                <p class="mb-2">
+                  <strong><i class="fas fa-book me-2"></i>Course ID:</strong>
+                  {{ selectedClass.courseId }}
+                </p>
+                <p class="mb-2">
+                  <strong
+                    ><i class="fas fa-graduation-cap me-2"></i>Academic
+                    Year:</strong
+                  >
+                  {{ selectedClass.academicYear }}
+                </p>
+                <p class="mb-2">
+                  <strong
+                    ><i class="fas fa-calendar-check me-2"></i>Semester:</strong
+                  >
+                  {{ selectedClass.semester }}
+                </p>
+              </div>
+              <div class="col-md-6">
+                <p class="mb-2">
+                  <strong
+                    ><i class="far fa-calendar-plus me-2"></i>Start
+                    Date:</strong
+                  >
+                  {{ selectedClass.startDate | date : "MMM d, y" }}
+                </p>
+                <p class="mb-2">
+                  <strong
+                    ><i class="far fa-calendar-minus me-2"></i>End Date:</strong
+                  >
+                  {{ selectedClass.endDate | date : "MMM d, y" }}
+                </p>
+                <p class="mb-2">
+                  <strong><i class="far fa-clock me-2"></i>Created:</strong>
+                  {{ selectedClass.createdAt | date : "MMM d, y" }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search students to add -->
+          <div class="mb-4">
+            <label class="form-label">Add Students to Class</label>
+            <div class="input-group mb-3">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search for students..."
+                [(ngModel)]="searchStudentTerm"
+              />
+              <button
+                class="btn btn-outline-primary"
+                type="button"
+                (click)="searchStudents()"
+              >
+                Search
+              </button>
+            </div>
+
+            <div *ngIf="searchResults.length > 0" class="mt-2">
+              <div *ngFor="let student of searchResults" class="student-card">
+                <div class="student-info">
+                  <span class="student-name"
+                    >{{ student.firstName }} {{ student.lastName }}</span
+                  >
+                  <span class="student-email">{{ student.email }}</span>
+                </div>
+                <button
+                  class="btn btn-sm"
+                  [class.btn-success]="!isStudentInClass(student)"
+                  [class.btn-secondary]="isStudentInClass(student)"
+                  [disabled]="isStudentInClass(student)"
+                  (click)="addStudentToClass(student)"
+                >
+                  {{
+                    isStudentInClass(student) ? "Already Added" : "Add to Class"
+                  }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current students in class -->
+          <div>
+            <h6 class="mb-3">Current Students</h6>
+
+            <div *ngIf="classLoading" class="text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+
+            <div
+              *ngIf="!classLoading && studentsInClass.length === 0"
+              class="text-center text-muted"
+            >
+              No students in this class
+            </div>
+
+            <div class="list-group mt-4">
+              <div *ngFor="let student of studentsInClass" class="student-card">
+                <div class="student-info">
+                  <span class="student-name"
+                    >{{ student.firstName }} {{ student.lastName }}</span
+                  >
+                  <span class="student-email">{{ student.email }}</span>
+                </div>
+                <button
+                  class="btn btn-sm btn-danger"
+                  (click)="removeStudentFromClass(student)"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

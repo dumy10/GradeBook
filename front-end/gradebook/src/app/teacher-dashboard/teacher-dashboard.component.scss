@@ -1,409 +1,125 @@
-/* Modern Teacher Dashboard Styling */
+/* Import shared dashboard styles */
+@use "./styles/dashboard-shared.scss";
 
-/* Main container */
-.auth-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    background-color: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    padding: 0;
-  }
-  
-  /* Header styling */
-  header {
-    padding: 1.5rem 2rem;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #eaecef;
-  }
-  
-  header h2 {
-    color: #344767;
-    font-size: 1.75rem;
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
-  
-  header .btn-danger {
-    background-color: #f44336;
-    border: none;
-    box-shadow: 0 3px 6px rgba(244, 67, 54, 0.2);
-    transition: all 0.3s ease;
-    padding: 0.5rem 1.25rem;
-    font-weight: 500;
-  }
-  
-  header .btn-danger:hover {
-    background-color: #d32f2f;
-    box-shadow: 0 5px 12px rgba(244, 67, 54, 0.3);
-    transform: translateY(-2px);
-  }
-  
-  /* Tab Navigation */
-  .nav-tabs {
-    border: none;
-    background-color: #f8f9fa;
-    padding: 0 2rem;
-    margin-bottom: 0;
-    display: flex;
-    justify-content: center;
-  }
-  
-  .nav-tabs .nav-item {
-    margin: 0 0.5rem;
-  }
-  
-  .nav-tabs .nav-item .nav-link {
-    border: none;
-    color: #5e6e82;
-    font-weight: 500;
-    padding: 1rem 1.5rem;
-    border-radius: 0;
-    position: relative;
-    transition: all 0.3s ease;
-  }
-  
-  .nav-tabs .nav-item .nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background-color: transparent;
-    transition: all 0.3s ease;
-  }
-  
-  .nav-tabs .nav-item .nav-link.active {
-    background: transparent;
-    color: #3b71ca;
-    font-weight: 600;
-  }
-  
-  .nav-tabs .nav-item .nav-link.active::after {
-    background-color: #3b71ca;
-  }
-  
-  .nav-tabs .nav-item .nav-link:hover:not(.active) {
-    color: #344767;
-  }
-  
-  .nav-tabs .nav-item .nav-link:hover:not(.active)::after {
-    background-color: rgba(59, 113, 202, 0.3);
-  }
-  
-  /* Content Area */
-  .tab-content {
-    padding: 2rem;
-    min-height: 500px;
-  }
-  
-  /* Cards */
-  .card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    height: 100%;
-  }
-  
-  .card:hover {
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-  }
-  
-  .card-header {
-    background-color: #3b71ca;
-    color: white;
-    border-top-left-radius: 12px !important;
-    border-top-right-radius: 12px !important;
-    padding: 1.25rem 1.5rem;
-  }
-  
-  .card-header h5 {
-    font-weight: 600;
-    margin: 0;
-  }
-  
-  .card-body {
-    padding: 1.5rem;
-  }
-  
-  /* Form elements */
-  .form-control {
-    padding: 0.65rem 1rem;
-    border: 1px solid #e0e4ec;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-  }
-  
-  .form-control:focus {
-    border-color: #3b71ca;
-    box-shadow: 0 0 0 3px rgba(59, 113, 202, 0.25);
-  }
-  
-  .form-label {
-    color: #344767;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-  }
-  
-  .input-group {
-    margin-bottom: 1rem;
-  }
-  
-  .input-group .form-control {
-    border-right: none;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-  
-  .input-group .btn {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-  
-  /* Buttons */
-  .btn-primary {
-    background-color: #3b71ca;
-    border: none;
-    box-shadow: 0 3px 6px rgba(59, 113, 202, 0.2);
-    transition: all 0.3s ease;
-    padding: 0.5rem 1.25rem;
-    font-weight: 500;
-  }
-  
-  .btn-primary:hover, .btn-primary:focus {
-    background-color: #2c5eaa;
-    box-shadow: 0 5px 12px rgba(59, 113, 202, 0.3);
-    transform: translateY(-2px);
-  }
-  
-  .btn-outline-primary {
-    color: #3b71ca;
-    border-color: #3b71ca;
-    transition: all 0.3s ease;
-  }
-  
-  .btn-outline-primary:hover {
-    background-color: #3b71ca;
-    color: white;
-  }
-  
-  .btn-sm {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.875rem;
-  }
-  
-  .btn-success {
-    background-color: #4caf50;
-    border: none;
-    box-shadow: 0 3px 6px rgba(76, 175, 80, 0.2);
-  }
-  
-  .btn-success:hover {
-    background-color: #388e3c;
-    box-shadow: 0 5px 12px rgba(76, 175, 80, 0.3);
-  }
-  
-  .btn-danger {
-    background-color: #f44336;
-    border: none;
-    box-shadow: 0 3px 6px rgba(244, 67, 54, 0.2);
-  }
-  
-  .btn-danger:hover {
-    background-color: #d32f2f;
-    box-shadow: 0 5px 12px rgba(244, 67, 54, 0.3);
-  }
-  
-  /* Alerts */
-  .alert {
-    border-radius: 8px;
-    padding: 1rem 1.25rem;
-    border: none;
-  }
-  
-  .alert-success {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-  }
-  
-  .alert-danger {
-    background-color: #ffebee;
-    color: #c62828;
-  }
-  
-  /* Class management specific styles */
-  .classes-tab .list-group-item {
-    border: 1px solid #e0e4ec;
-    margin-bottom: 0.75rem;
-    border-radius: 8px;
-    padding: 1rem;
-    transition: all 0.2s ease;
-  }
-  
-  .classes-tab .list-group-item:hover {
+/* Teacher Dashboard Component-specific styles */
+
+/* Class management specific styles */
+.classes-tab .list-group-item {
+  border: 1px solid #e0e4ec;
+  margin-bottom: 0.75rem;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
     background-color: rgba(59, 113, 202, 0.05);
     border-color: rgba(59, 113, 202, 0.2);
   }
-  
-  .classes-tab .list-group-item.active {
+
+  &.active {
     background-color: rgba(59, 113, 202, 0.9);
     border-color: #3b71ca;
     color: white;
+
+    .text-muted {
+      color: rgba(255, 255, 255, 0.8) !important;
+    }
   }
-  
-  .classes-tab .list-group-item.active .text-muted {
-    color: rgba(255, 255, 255, 0.8) !important;
-  }
-  
-  .classes-tab .small {
+}
+
+.classes-tab {
+  .small {
     font-size: 0.85rem;
     line-height: 1.5;
     color: #6c757d;
   }
-  
-  .classes-tab .badge {
+
+  .badge {
     font-size: 0.75rem;
     font-weight: 500;
     padding: 0.35rem 0.75rem;
     border-radius: 6px;
   }
-  
-  .classes-tab .class-details {
+
+  .class-details {
     background-color: #f8f9fa;
     border-radius: 10px;
     padding: 1.25rem;
     border-left: 4px solid #3b71ca;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  }
-  
-  .classes-tab .class-details h6 {
-    color: #344767;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #e0e4ec;
-  }
-  
-  .classes-tab .class-details p {
-    margin-bottom: 0.5rem;
-    color: #5e6e82;
-  }
-  
-  .classes-tab .class-details strong {
-    font-weight: 600;
-    color: #344767;
-  }
-  
-  /* Student cards */
-  .student-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    margin-bottom: 5px;
-  }
-  
-  .student-info {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .student-name {
-    font-weight: bold;
-  }
-  
-  .student-email {
-    font-size: 0.85rem;
-    color: #666;
-  }
-  
-  /* Loading spinner */
-  .spinner-border {
-    width: 1.5rem;
-    height: 1.5rem;
-    border-width: 0.2em;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 767.98px) {
-    .classes-tab .row > div {
-      margin-bottom: 1.5rem;
-    }
-    
-    .auth-container {
-      margin: 1rem;
-      border-radius: 12px;
-    }
-    
-    .nav-tabs {
-      padding: 0 1rem;
-    }
-    
-    .nav-tabs .nav-item .nav-link {
-      padding: 0.75rem 1rem;
-    }
-    
-    .tab-content {
-      padding: 1.5rem;
-    }
-    
-    header {
-      padding: 1.25rem;
-    }
-  }
-  
-  .modal {
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1050;
-  }
-  
-  .modal-backdrop {
-    z-index: 1040;
-  }
-  
-  .modal-dialog {
-    z-index: 1055;
-  }
-  
-  /* Ensure the modal content is above the backdrop */
-  .modal-content {
-    position: relative;
-    z-index: 1060;
-  }
-  
-  /* Add some spacing to the class info card */
-  .class-info-card {
-    margin-bottom: 2rem;
-    
-    .card-title {
-      color: #0d6efd;
+
+    h6 {
+      color: #344767;
       font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #e0e4ec;
     }
-    
-    .info-label {
-      font-weight: 500;
-      color: #6c757d;
+
+    p {
+      margin-bottom: 0.5rem;
+      color: #5e6e82;
     }
-    
-    .info-value {
-      color: #212529;
+
+    strong {
+      font-weight: 600;
+      color: #344767;
     }
   }
-  
-  /* Grade History Timeline Styling */
-  .timeline {
-    position: relative;
-    padding: 20px 0;
-    list-style: none;
-    max-width: 1200px;
-    margin: 0 auto;
+}
+
+/* Student cards */
+.student-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 5px;
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name {
+  font-weight: bold;
+}
+
+.student-email {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Class info card styles */
+.class-info-card {
+  margin-bottom: 2rem;
+
+  .card-title {
+    color: #0d6efd;
+    font-weight: 600;
   }
-  
-  .timeline:before {
+
+  .info-label {
+    font-weight: 500;
+    color: #6c757d;
+  }
+
+  .info-value {
+    color: #212529;
+  }
+}
+
+/* Grade History Timeline Styling */
+.timeline {
+  position: relative;
+  padding: 20px 0;
+  list-style: none;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  &:before {
     content: " ";
     position: absolute;
     top: 0;
@@ -413,39 +129,39 @@
     margin-left: -1.5px;
     background-color: #eeeeee;
   }
-  
-  .timeline-item {
-    margin-bottom: 20px;
-    position: relative;
-  }
-  
-  .timeline-badge {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    position: absolute;
-    top: 16px;
-    left: 32px;
-    margin-left: -18px;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-  }
-  
-  .timeline-panel {
-    position: relative;
-    width: calc(100% - 90px);
-    float: right;
-    margin-right: 15px;
-    border: 1px solid #d4d4d4;
-    border-radius: 6px;
-    padding: 15px;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
-  }
-  
-  .timeline-panel:before {
+}
+
+.timeline-item {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.timeline-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  position: absolute;
+  top: 16px;
+  left: 32px;
+  margin-left: -18px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.timeline-panel {
+  position: relative;
+  width: calc(100% - 90px);
+  float: right;
+  margin-right: 15px;
+  border: 1px solid #d4d4d4;
+  border-radius: 6px;
+  padding: 15px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+
+  &:before {
     content: " ";
     position: absolute;
     top: 26px;
@@ -455,8 +171,8 @@
     border-bottom: 15px solid transparent;
     border-left: 0 solid #ccc;
   }
-  
-  .timeline-panel:after {
+
+  &:after {
     content: " ";
     position: absolute;
     top: 27px;
@@ -466,40 +182,36 @@
     border-bottom: 14px solid transparent;
     border-left: 0 solid #fff;
   }
-  
-  .timeline-title {
-    margin-top: 0;
-    color: inherit;
-  }
-  
-  .timeline-heading {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-  }
-  
-  /* Point Change Indicators */
-  .point-change-indicator {
-    display: inline-block;
-    padding: 0.25em 0.5em;
-    border-radius: 3px;
-    font-weight: bold;
-  }
-  
-  /* Modal Content Scrolling */
-  .modal-content {
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-  
-  /* Grade History Table */
-  .grade-history-table th,
-  .grade-history-table td {
+}
+
+.timeline-title {
+  margin-top: 0;
+  color: inherit;
+}
+
+.timeline-heading {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+/* Point Change Indicators */
+.point-change-indicator {
+  display: inline-block;
+  padding: 0.25em 0.5em;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+/* Grade History Table */
+.grade-history-table {
+  th,
+  td {
     vertical-align: middle;
   }
-  
-  .grade-history-table .badge {
+
+  .badge {
     font-size: 0.75rem;
     padding: 0.25em 0.5em;
   }
-  
+}

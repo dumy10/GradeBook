@@ -6,426 +6,66 @@
 
   <ul class="nav nav-tabs justify-content-center mb-4">
     <li class="nav-item">
-      <button type="button" class="nav-link" [class.active]="activeTab === 'profile'" (click)="changeTab('profile')">Profile</button>
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab === 'profile'"
+        (click)="changeTab('profile')"
+      >
+        Profile
+      </button>
     </li>
     <li class="nav-item">
-      <button type="button" class="nav-link" [class.active]="activeTab === 'grades'" (click)="changeTab('grades')">My Grades</button>
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab === 'grades'"
+        (click)="changeTab('grades')"
+      >
+        My Grades
+      </button>
     </li>
     <li class="nav-item">
-      <button type="button" class="nav-link" [class.active]="activeTab === 'history'" (click)="changeTab('history')">Grade History</button>
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab === 'history'"
+        (click)="changeTab('history')"
+      >
+        Grade History
+      </button>
     </li>
     <li class="nav-item">
-      <button type="button" class="nav-link" [class.active]="activeTab === 'password'" (click)="changeTab('password')">Change Password</button>
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab === 'password'"
+        (click)="changeTab('password')"
+      >
+        Change Password
+      </button>
     </li>
   </ul>
 
   <div class="tab-content">
     <!-- Profile Tab -->
-    <div *ngIf="activeTab === 'profile'" class="profile-tab">
-      <h3 class="fw-bold mb-3 text-success">Your Profile</h3>
-      
-      <div *ngIf="successMessage" class="alert alert-success mb-3">
-        {{ successMessage }}
-      </div>
-      <div *ngIf="errorMessage" class="alert alert-danger mb-3">
-        {{ errorMessage }}
-      </div>
-      
-      <form (ngSubmit)="updateProfile()">
-        <!-- Read-only information -->
-        <div class="mb-3">
-          <label class="form-label">Email</label>
-          <input 
-            type="email" 
-            class="form-control bg-light" 
-            [value]="userInfo.email" 
-            readonly>
-        </div>
-        
-        <div class="mb-3">
-          <label class="form-label">Username</label>
-          <input 
-            type="text" 
-            class="form-control bg-light" 
-            [value]="userInfo.username" 
-            readonly>
-        </div>
-        
-        <!-- Editable information -->
-        <div class="mb-3">
-          <label for="firstName" class="form-label">First Name</label>
-          <input 
-            type="text" 
-            id="firstName" 
-            name="firstName"
-            class="form-control"
-            [(ngModel)]="userData.firstName" 
-            required>
-        </div>
-        
-        <div class="mb-3">
-          <label for="lastName" class="form-label">Last Name</label>
-          <input 
-            type="text" 
-            id="lastName" 
-            name="lastName"
-            class="form-control"
-            [(ngModel)]="userData.lastName" 
-            required>
-        </div>
-        
-        <div class="mb-3">
-          <label for="phone" class="form-label">Phone Number</label>
-          <input 
-            type="tel" 
-            id="phone" 
-            name="phone"
-            class="form-control"
-            [(ngModel)]="userData.phone">
-        </div>
-        
-        <div class="mb-3">
-          <label for="address" class="form-label">Address</label>
-          <textarea 
-            id="address" 
-            name="address"
-            class="form-control"
-            rows="3"
-            [(ngModel)]="userData.address"></textarea>
-        </div>
-        
-        <button type="submit" class="btn btn-success w-100" [disabled]="isLoading">
-          {{ isLoading ? 'Updating...' : 'Update Profile' }}
-        </button>
-      </form>
+    <div *ngIf="activeTab === 'profile'">
+      <app-profile></app-profile>
     </div>
-    
+
     <!-- Grades Tab -->
-    <div *ngIf="activeTab === 'grades'" class="grades-tab">
-      <h3 class="fw-bold mb-3 text-success">My Grades</h3>
-      
-      <!-- Loading state -->
-      <div *ngIf="gradesLoading" class="text-center py-5">
-        <div class="spinner-border text-success mb-3" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="text-muted">Loading your grades...</p>
-      </div>
-      
-      <!-- Error state -->
-      <div *ngIf="gradesError" class="alert alert-danger">
-        <div class="fw-bold">Error loading grades:</div>
-        <p>{{ gradesError }}</p>
-        <button class="btn btn-sm btn-outline-danger mt-2" (click)="loadGrades()">Retry</button>
-      </div>
-      
-      <!-- Empty state -->
-      <div *ngIf="!gradesLoading && !gradesError && grades.length === 0" class="text-center py-5">
-        <div class="text-muted">
-          <div class="fs-1 mb-3">📚</div>
-          <p class="lead">You don't have any grades yet.</p>
-          <button class="btn btn-sm btn-outline-success mt-2" (click)="loadGrades()">
-            Refresh Grades
-          </button>
-        </div>
-      </div>
-      
-      <!-- Grades by course -->
-      <div *ngIf="!gradesLoading && !gradesError && grades.length > 0">
-        <!-- Summary stats -->
-        <div class="card mb-4 border-success">
-          <div class="card-body">
-            <h5 class="card-title">Summary</h5>
-            <div class="row text-center">
-              <div class="col-4">
-                <div class="fs-4 fw-bold text-success">{{ grades.length }}</div>
-                <div class="small text-muted">Assignments</div>
-              </div>
-              <div class="col-4">
-                <div class="fs-4 fw-bold text-success">
-                  {{ getGradesByCourse().length }}
-                </div>
-                <div class="small text-muted">Courses</div>
-              </div>
-              <div class="col-4">
-                <div class="fs-4 fw-bold text-success">
-                  {{ calculateOverallAverage() }}%
-                </div>
-                <div class="small text-muted">Overall</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Course sections -->
-        <div *ngFor="let courseGroup of getGradesByCourse()" class="mb-4">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="mb-0">{{ courseGroup.courseName }}</h5>
-            <span class="badge bg-success">
-              {{ calculateCourseAverage(courseGroup.grades) }}%
-            </span>
-          </div>
-          
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead class="table-light">
-                <tr>
-                  <th>Assignment</th>
-                  <th>Due Date</th>
-                  <th>Type</th>
-                  <th>Grade</th>
-                  <th>Comment</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let grade of courseGroup.grades">
-                  <td>
-                    <div class="fw-medium">{{ grade.assignment.title }}</div>
-                    <small class="text-muted">{{ grade.assignment.description }}</small>
-                  </td>
-                  <td>{{ formatDate(grade.assignment.dueDate) }}</td>
-                  <td>
-                    <span class="badge bg-secondary">{{ grade.assignment.assignmentType.name }}</span>
-                  </td>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <div class="me-2 fw-bold">
-                        {{ grade.points }}/{{ grade.assignment.maxPoints }}
-                      </div>
-                      <div 
-                        class="progress flex-grow-1" 
-                        style="height: 8px; min-width: 80px;">
-                        <div 
-                          class="progress-bar" 
-                          [ngClass]="{
-                            'bg-danger': calculatePercentage(grade.points, grade.assignment.maxPoints) < 60,
-                            'bg-warning': calculatePercentage(grade.points, grade.assignment.maxPoints) >= 60 && calculatePercentage(grade.points, grade.assignment.maxPoints) < 80,
-                            'bg-success': calculatePercentage(grade.points, grade.assignment.maxPoints) >= 80
-                          }"
-                          [style.width.%]="calculatePercentage(grade.points, grade.assignment.maxPoints)">
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span *ngIf="grade.comment">{{ grade.comment }}</span>
-                    <span *ngIf="!grade.comment" class="text-muted">No comment</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    <div *ngIf="activeTab === 'grades'">
+      <app-grades></app-grades>
     </div>
-    
+
     <!-- Grade History Tab -->
-    <div *ngIf="activeTab === 'history'" class="history-tab">
-      <h3 class="fw-bold mb-3 text-success">Grade History</h3>
-      
-      <!-- Shared states with grades tab -->
-      <!-- Loading state -->
-      <div *ngIf="gradesLoading" class="text-center py-5">
-        <div class="spinner-border text-success mb-3" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="text-muted">Loading your grade history...</p>
-      </div>
-      
-      <!-- Error state -->
-      <div *ngIf="gradesError" class="alert alert-danger">
-        <div class="fw-bold">Error loading grades:</div>
-        <p>{{ gradesError }}</p>
-        <button class="btn btn-sm btn-outline-danger mt-2" (click)="loadGrades()">Retry</button>
-      </div>
-      
-      <!-- Empty state -->
-      <div *ngIf="!gradesLoading && !gradesError && grades.length === 0" class="text-center py-5">
-        <div class="text-muted">
-          <div class="fs-1 mb-3">📚</div>
-          <p class="lead">No grade history available yet.</p>
-          <button class="btn btn-sm btn-outline-success mt-2" (click)="loadGrades()">
-            Refresh History
-          </button>
-        </div>
-      </div>
-      
-      <!-- History content -->
-      <div *ngIf="!gradesLoading && !gradesError && grades.length > 0">
-        <div class="timeline-header d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <span class="badge bg-success me-2">{{ grades.length }}</span>
-            <span class="text-muted">total grades</span>
-          </div>
-          <button class="btn btn-sm btn-outline-success" (click)="loadGrades()">
-            <span class="me-1">↻</span> Refresh
-          </button>
-        </div>
-        
-        <div class="timeline">
-          <!-- Group by date -->
-          <div *ngFor="let dateGroup of getGradeHistory(); let i = index" class="timeline-item mb-4">
-            <div class="timeline-date mb-2">
-              <span class="badge bg-light text-dark">{{ dateGroup.date }}</span>
-              <small class="text-muted ms-2">{{ getRelativeDate(dateGroup.grades[0].createdAt) }}</small>
-            </div>
-            
-            <!-- Each grade in the date group -->
-            <div *ngFor="let grade of dateGroup.grades" class="timeline-card card mb-3 border-start border-success border-3">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <div>
-                    <h5 class="card-title mb-0">{{ grade.assignment.title }}</h5>
-                    <div class="text-muted small">
-                      {{ grade.assignment.class.course.name }} • 
-                      <span class="badge bg-secondary">{{ grade.assignment.assignmentType.name }}</span>
-                    </div>
-                  </div>
-                  <div class="text-end">
-                    <div class="grade-display">
-                      <!-- Find previous grade version if any -->
-                      <ng-container *ngLet="findPreviousGrade(grade) as prevGrade">
-                        <div *ngIf="prevGrade" class="d-flex align-items-center small mb-1">
-                          <span class="text-muted me-2">Previous:</span>
-                          <span>{{ prevGrade.points }}/{{ prevGrade.assignment.maxPoints }}</span>
-                          <span class="ms-1">({{ calculatePercentage(prevGrade.points, prevGrade.assignment.maxPoints) }}%)</span>
-                        </div>
-                        
-                        <div class="d-flex align-items-center">
-                          <span class="fs-5 fw-bold">{{ grade.points }}/{{ grade.assignment.maxPoints }}</span>
-                          <span class="ms-2">({{ calculatePercentage(grade.points, grade.assignment.maxPoints) }}%)</span>
-                          
-                          <!-- Show change indicator if there's a previous grade -->
-                          <div *ngIf="prevGrade" class="ms-2" 
-                               [ngClass]="getChangeColorClass(grade.points, prevGrade.points)">
-                            <span *ngIf="grade.points > prevGrade.points">▲</span>
-                            <span *ngIf="grade.points < prevGrade.points">▼</span>
-                            <span *ngIf="grade.points === prevGrade.points">◆</span>
-                            <span class="ms-1">{{ grade.points - prevGrade.points | number:'+0.0;-0.0' }} points</span>
-                          </div>
-                        </div>
-                      </ng-container>
-                      
-                      <!-- If no previous grade -->
-                      <div *ngIf="!findPreviousGrade(grade)" class="fs-5 fw-bold">
-                        {{ grade.points }}/{{ grade.assignment.maxPoints }}
-                        <span class="ms-2">({{ calculatePercentage(grade.points, grade.assignment.maxPoints) }}%)</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- Grade details -->
-                <div class="row g-3 mt-1">
-                  <!-- Left column -->
-                  <div class="col-md-8">
-                    <div class="mb-3">
-                      <h6 class="fw-bold mb-1">Description</h6>
-                      <p class="mb-0">{{ grade.assignment.description || 'No description available' }}</p>
-                    </div>
-                    
-                    <div *ngIf="grade.comment" class="mb-3">
-                      <h6 class="fw-bold mb-1">Feedback</h6>
-                      <div class="feedback-box p-2 bg-light rounded">
-                        {{ grade.comment }}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Right column -->
-                  <div class="col-md-4">
-                    <div class="grade-meta bg-light p-3 rounded">
-                      <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Graded by:</span>
-                        <span>{{ grade.grader.firstName }} {{ grade.grader.lastName }}</span>
-                      </div>
-                      
-                      <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Due date:</span>
-                        <span>{{ formatDate(grade.assignment.dueDate) }}</span>
-                      </div>
-                      
-                      <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Created:</span>
-                        <span>{{ formatDate(grade.createdAt) }} {{ formatTime(grade.createdAt) }}</span>
-                      </div>
-                      
-                      <div *ngIf="grade.updatedAt !== grade.createdAt" class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Updated:</span>
-                        <span>{{ formatDate(grade.updatedAt) }} {{ formatTime(grade.updatedAt) }}</span>
-                      </div>
-                      
-                      <div class="d-flex align-items-center mt-3">
-                        <div class="progress flex-grow-1" style="height: 8px;">
-                          <div class="progress-bar" 
-                               [ngClass]="{
-                                 'bg-danger': calculatePercentage(grade.points, grade.assignment.maxPoints) < 60,
-                                 'bg-warning': calculatePercentage(grade.points, grade.assignment.maxPoints) >= 60 && calculatePercentage(grade.points, grade.assignment.maxPoints) < 80,
-                                 'bg-success': calculatePercentage(grade.points, grade.assignment.maxPoints) >= 80
-                               }"
-                               [style.width.%]="calculatePercentage(grade.points, grade.assignment.maxPoints)">
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div *ngIf="activeTab === 'history'">
+      <app-history></app-history>
     </div>
-    
+
     <!-- Change Password Tab -->
-    <div *ngIf="activeTab === 'password'" class="password-tab">
-      <h3 class="fw-bold mb-3 text-success">Change Password</h3>
-      
-      <div *ngIf="successMessage" class="alert alert-success mb-3">
-        {{ successMessage }}
-      </div>
-      <div *ngIf="errorMessage" class="alert alert-danger mb-3">
-        {{ errorMessage }}
-      </div>
-      
-      <form (ngSubmit)="changePassword()">
-        <div class="mb-3">
-          <label for="currentPassword" class="form-label">Current Password</label>
-          <input 
-            type="password" 
-            id="currentPassword" 
-            name="currentPassword"
-            class="form-control"
-            [(ngModel)]="passwordData.currentPassword" 
-            required>
-        </div>
-        
-        <div class="mb-3">
-          <label for="newPassword" class="form-label">New Password</label>
-          <input 
-            type="password" 
-            id="newPassword" 
-            name="newPassword"
-            class="form-control"
-            [(ngModel)]="passwordData.newPassword" 
-            required>
-        </div>
-        
-        <div class="mb-3">
-          <label for="confirmPassword" class="form-label">Confirm New Password</label>
-          <input 
-            type="password" 
-            id="confirmPassword" 
-            name="confirmPassword"
-            class="form-control"
-            [(ngModel)]="passwordData.confirmPassword" 
-            required>
-        </div>
-        
-        <button type="submit" class="btn btn-success w-100" [disabled]="isLoading">
-          {{ isLoading ? 'Changing Password...' : 'Change Password' }}
-        </button>
-      </form>
+    <div *ngIf="activeTab === 'password'">
+      <app-password></app-password>
     </div>
   </div>
-</div> 
+</div>

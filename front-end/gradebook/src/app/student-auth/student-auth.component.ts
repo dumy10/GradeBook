@@ -119,7 +119,6 @@ export class StudentAuthComponent {
 
     this.authService.login(this.loginCredentials).subscribe({
       next: (response) => {
-        console.log('Login response received:', response);
         if (response.success) {
           // Check if the user has the correct role using case-insensitive comparison
           if (response.role.toUpperCase() === 'STUDENT') {

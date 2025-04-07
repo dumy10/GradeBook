@@ -102,24 +102,21 @@ export class GradeService {
 
   getStudentGrades(studentId: number): Observable<Grade[]> {
     const headers = this.authService.getAuthHeaders();
-    console.log(`Fetching grades for student ID: ${studentId}`);
-    console.log(`Request URL: ${this.API_URL}/Grade/student/${studentId}`);
-    console.log('Headers:', headers);
-    console.log('Authorization header:', headers.get('Authorization'));
 
     return this.http
       .get<Grade[]>(`${this.API_URL}/Grade/student/${studentId}`, { headers })
       .pipe(
         catchError((error) => {
-          console.error('Error in GradeService.getStudentGrades:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
-
           // For 404, return empty array instead of throwing an error
           if (error.status === 404) {
             console.log('No grades found for student. Returning empty array.');
-            return [];
+            return of([]);
           }
+
+          // Only log detailed error info for non-404 errors
+          console.error('Error in GradeService.getStudentGrades:', error);
+          console.error('Error status:', error.status);
+          console.error('Error message:', error.message);
 
           // Provide more context in the error
           if (error.status === 0) {

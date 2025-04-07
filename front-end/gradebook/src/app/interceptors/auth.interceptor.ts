@@ -6,7 +6,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
   
-  console.log('Auth interceptor running for URL:', req.url);
   console.log('Token available:', !!token);
   
   if (token) {

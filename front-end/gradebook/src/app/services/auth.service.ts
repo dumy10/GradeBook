@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 export interface LoginRequest {
@@ -61,7 +61,7 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     console.log('AuthService login called with:', credentials);
     console.log('API URL being used:', `${this.API_URL}/Auth/login`);
-    
+
     return this.http
       .post<AuthResponse>(`${this.API_URL}/Auth/login`, credentials)
       .pipe(
@@ -71,7 +71,9 @@ export class AuthService {
             // Store user details in localStorage
             localStorage.setItem('currentUser', JSON.stringify(response));
             this.currentUserSubject.next(response);
-            console.log('User data stored in localStorage and BehaviorSubject updated');
+            console.log(
+              'User data stored in localStorage and BehaviorSubject updated'
+            );
           }
         })
       );
@@ -80,7 +82,7 @@ export class AuthService {
   register(registerData: RegisterRequest): Observable<AuthResponse> {
     console.log('AuthService register called with:', registerData);
     console.log('API URL being used:', `${this.API_URL}/Auth/register`);
-    
+
     return this.http
       .post<AuthResponse>(`${this.API_URL}/Auth/register`, registerData)
       .pipe(
@@ -90,7 +92,9 @@ export class AuthService {
             // Store user details in localStorage
             localStorage.setItem('currentUser', JSON.stringify(response));
             this.currentUserSubject.next(response);
-            console.log('User data stored in localStorage and BehaviorSubject updated');
+            console.log(
+              'User data stored in localStorage and BehaviorSubject updated'
+            );
           }
         })
       );
@@ -119,11 +123,11 @@ export class AuthService {
     if (token) {
       return new HttpHeaders({
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       });
     }
     return new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     });
   }
 
@@ -133,14 +137,14 @@ export class AuthService {
     console.log('Changing password with data:', passwordData);
     console.log('Using headers:', headers);
     console.log('Request URL:', `${this.API_URL}/User/change-password`);
-    
+
     return this.http.post<any>(
-      `${this.API_URL}/User/change-password`, 
+      `${this.API_URL}/User/change-password`,
       {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
-        confirmPassword: passwordData.confirmPassword
-      }, 
+        confirmPassword: passwordData.confirmPassword,
+      },
       { headers }
     );
   }
@@ -151,11 +155,9 @@ export class AuthService {
     console.log('Updating profile with data:', profileData);
     console.log('Using headers:', headers);
     console.log('Request URL:', `${this.API_URL}/User/profile`);
-    
-    return this.http.put<any>(
-      `${this.API_URL}/User/profile`, 
-      profileData, 
-      { headers }
-    );
+
+    return this.http.put<any>(`${this.API_URL}/User/profile`, profileData, {
+      headers,
+    });
   }
 }

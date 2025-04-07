@@ -11,12 +11,12 @@ interface NgLetContext<T> {
  */
 @Directive({
   selector: '[ngLet]',
-  standalone: true
+  standalone: true,
 })
 export class NgLetDirective<T> {
   private _context: NgLetContext<T> = {
     $implicit: null as any,
-    ngLet: null as any
+    ngLet: null as any,
   };
 
   @Input()
@@ -30,4 +30,4 @@ export class NgLetDirective<T> {
     private viewContainerRef: ViewContainerRef,
     private templateRef: TemplateRef<NgLetContext<T>>
   ) {}
-} 
+}

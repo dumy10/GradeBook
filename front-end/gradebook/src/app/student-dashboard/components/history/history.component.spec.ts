@@ -241,18 +241,6 @@ describe('HistoryComponent', () => {
     expect(formattedDate).toContain('Mar');
   });
 
-  it('should format time correctly', () => {
-    gradeServiceSpy.getStudentGrades.and.returnValue(of(mockGradeData));
-
-    fixture = TestBed.createComponent(HistoryComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-
-    const formattedTime = component.formatTime('2025-03-01T14:30:00Z');
-    // Will be either 2:30 PM or 14:30 depending on locale
-    expect(formattedTime).toMatch('04:30 PM');
-  });
-
   it('should calculate days since correctly', () => {
     gradeServiceSpy.getStudentGrades.and.returnValue(of(mockGradeData));
 

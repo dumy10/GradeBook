@@ -1,0 +1,103 @@
+/* Shared styles for all dashboard components */
+
+/* Pointer utility */
+.pointer {
+  cursor: pointer;
+}
+
+/* Form elements styling */
+.form-control:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+.btn-success {
+  background-color: #198754;
+  border-color: #198754;
+  transition: all 0.2s ease;
+}
+
+.btn-success:hover,
+.btn-success:focus {
+  background-color: #157347;
+  border-color: #146c43;
+  transform: translateY(-1px);
+}
+
+/* Table improvements */
+.table-hover tbody tr:hover {
+  background-color: rgba(25, 135, 84, 0.05);
+}
+
+/* Card styling */
+.card {
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* Timeline styling */
+.timeline {
+  position: relative;
+  padding-left: 10px;
+}
+
+.timeline-item {
+  position: relative;
+}
+
+.timeline-date {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-card {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
+
+.timeline-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Grade history specific styles */
+.feedback-box {
+  border-left: 3px solid #198754;
+  font-style: italic;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.grade-meta {
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  background-color: #f8f9fa;
+}
+
+/* Tab content should always be visible */
+.tab-content {
+  min-height: 300px;
+  padding: 20px 0;
+}
+
+/* Success and error messages */
+.success-message {
+  padding: 10px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.error-message {
+  padding: 10px;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}

@@ -6,7 +6,6 @@ import { RouterOutlet } from '@angular/router';
   imports: [RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
-  template: `<router-outlet></router-outlet>`
 })
 export class AppComponent {
   title = 'gradebook';

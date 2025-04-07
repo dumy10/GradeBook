@@ -1,0 +1,135 @@
+/* Import shared dashboard styles */
+@use "../../styles/dashboard-shared.scss";
+
+/* Grade Management component specific styles */
+.grade-table {
+  th {
+    font-weight: 600;
+    color: #344767;
+    border-color: #eaecef;
+    background-color: #f8f9fa;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+}
+
+/* Point percentage styling */
+.text-success {
+  color: #4caf50;
+
+  &.fw-bold {
+    font-weight: 600;
+  }
+}
+
+.text-warning {
+  color: #ff9800;
+}
+
+.text-danger {
+  color: #f44336;
+}
+
+/* Student card styling */
+.student-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+}
+
+.student-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #344767;
+}
+
+.student-email {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* Timeline styling for grade history */
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 1.5rem;
+}
+
+.timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: -0.25rem;
+  top: 0.75rem;
+  bottom: 0;
+  border-left: 1px dashed #dee2e6;
+}
+
+.timeline-item-marker {
+  position: absolute;
+  left: -1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timeline-item-marker-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 100%;
+}
+
+.timeline-item-content {
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border-left: 3px solid #dee2e6;
+  margin-left: 0.5rem;
+}
+
+/* List group item styling */
+.list-group-item {
+  border: 1px solid #e0e4ec;
+  margin-bottom: 0.75rem;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(59, 113, 202, 0.05);
+    border-color: rgba(59, 113, 202, 0.2);
+  }
+
+  &.active {
+    background-color: rgba(59, 113, 202, 0.9);
+    border-color: #3b71ca;
+    color: white;
+
+    .text-muted {
+      color: rgba(255, 255, 255, 0.8) !important;
+    }
+  }
+}
+
+.border-left-primary {
+  border-left: 4px solid #3b71ca;
+}

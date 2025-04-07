@@ -1,8 +1,12 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService, LoginRequest, RegisterRequest } from '../services/auth.service';
+import {
+  AuthService,
+  LoginRequest,
+  RegisterRequest,
+} from '../services/auth.service';
 
 interface SignupData {
   firstName: string;
@@ -10,7 +14,7 @@ interface SignupData {
   email: string;
   password: string;
   confirmPassword: string;
-  username: string; 
+  username: string;
   role: string;
 }
 
@@ -19,17 +23,17 @@ interface SignupData {
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './student-auth.component.html',
-  styleUrls: ['./student-auth.component.scss']
+  styleUrls: ['./student-auth.component.scss'],
 })
 export class StudentAuthComponent {
   activeTab: 'login' | 'signup' = 'login';
-  
+
   // Login form
   loginCredentials: LoginRequest = {
     email: '',
-    password: ''
+    password: '',
   };
-  
+
   // Signup form
   signupData: SignupData = {
     email: '',
@@ -38,9 +42,9 @@ export class StudentAuthComponent {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    role: 'student'
+    role: 'student',
   };
-  
+
   errorMessage: string = '';
   signupErrorMessage: string = '';
   isLoading: boolean = false;
@@ -48,22 +52,19 @@ export class StudentAuthComponent {
   isLoginFormValid: boolean = true;
   validationErrors = {
     email: '',
-    password: ''
+    password: '',
   };
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   validateLoginForm(): void {
     // Clear any existing error message when the input changes
     this.errorMessage = '';
-    
+
     // Reset validation errors
     this.validationErrors = {
       email: '',
-      password: ''
+      password: '',
     };
 
     // Validate email
@@ -77,11 +78,14 @@ export class StudentAuthComponent {
     if (!this.loginCredentials.password) {
       this.validationErrors.password = 'Password is required';
     } else if (this.loginCredentials.password.length < 6) {
-      this.validationErrors.password = 'Password must be at least 6 characters long';
+      this.validationErrors.password =
+        'Password must be at least 6 characters long';
     }
 
     // Check if form is valid
-    this.isLoginFormValid = !Object.values(this.validationErrors).some(error => error !== '');
+    this.isLoginFormValid = !Object.values(this.validationErrors).some(
+      (error) => error !== ''
+    );
   }
 
   private isValidEmail(email: string): boolean {
@@ -102,7 +106,7 @@ export class StudentAuthComponent {
   onLogin(): void {
     console.log('Student onLogin method called');
     console.log('Form validation state:', this.isLoginFormValid);
-    
+
     if (!this.isLoginFormValid) {
       console.log('Form is not valid, returning');
       return;
@@ -115,7 +119,6 @@ export class StudentAuthComponent {
 
     this.authService.login(this.loginCredentials).subscribe({
       next: (response) => {
-        console.log('Login response received:', response);
         if (response.success) {
           // Check if the user has the correct role using case-insensitive comparison
           if (response.role.toUpperCase() === 'STUDENT') {
@@ -133,13 +136,15 @@ export class StudentAuthComponent {
       },
       error: (error) => {
         console.log('Login error:', error);
-        
+
         if (error.status === 0) {
-          this.errorMessage = 'Network or CORS error. Please check if the server is running and CORS is configured.';
+          this.errorMessage =
+            'Network or CORS error. Please check if the server is running and CORS is configured.';
         } else {
-          this.errorMessage = error.error?.message || 'Invalid username or password';
+          this.errorMessage =
+            error.error?.message || 'Invalid username or password';
         }
-        
+
         this.resetFormState();
       },
       complete: () => {
@@ -147,37 +152,42 @@ export class StudentAuthComponent {
         if (this.isLoading) {
           this.resetFormState();
         }
-      }
+      },
     });
   }
-  
+
   onSignup(): void {
     // Reset error message
     this.signupErrorMessage = '';
-    
+
     // Basic validation
-    if (!this.signupData.firstName || !this.signupData.lastName || 
-        !this.signupData.email || !this.signupData.password || 
-        !this.signupData.confirmPassword || !this.signupData.username) {
+    if (
+      !this.signupData.firstName ||
+      !this.signupData.lastName ||
+      !this.signupData.email ||
+      !this.signupData.password ||
+      !this.signupData.confirmPassword ||
+      !this.signupData.username
+    ) {
       this.signupErrorMessage = 'Please fill in all fields';
       return;
     }
-    
+
     if (!this.isValidEmail(this.signupData.email)) {
       this.signupErrorMessage = 'Please enter a valid email address';
       return;
     }
-    
+
     if (this.signupData.password.length < 6) {
       this.signupErrorMessage = 'Password must be at least 6 characters long';
       return;
     }
-    
+
     if (this.signupData.password !== this.signupData.confirmPassword) {
       this.signupErrorMessage = 'Passwords do not match';
       return;
     }
-    
+
     // Prepare registration data
     const registerData: RegisterRequest = {
       email: this.signupData.email,
@@ -186,12 +196,12 @@ export class StudentAuthComponent {
       confirmPassword: this.signupData.confirmPassword,
       firstName: this.signupData.firstName,
       lastName: this.signupData.lastName,
-      role: 'student' // Set role to student for student registration
+      role: 'student', // Set role to student for student registration
     };
-    
+
     // Start loading state
     this.isSignupLoading = true;
-    
+
     // Call registration service
     this.authService.register(registerData).subscribe({
       next: (response) => {
@@ -204,7 +214,8 @@ export class StudentAuthComponent {
         }
       },
       error: (error) => {
-        this.signupErrorMessage = error.error?.message || 'An error occurred during registration';
+        this.signupErrorMessage =
+          error.error?.message || 'An error occurred during registration';
         this.resetSignupFormState();
       },
       complete: () => {
@@ -212,7 +223,7 @@ export class StudentAuthComponent {
         if (this.isSignupLoading) {
           this.resetSignupFormState();
         }
-      }
+      },
     });
   }
 }

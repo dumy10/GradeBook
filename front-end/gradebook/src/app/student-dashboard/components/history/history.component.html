@@ -1,0 +1,254 @@
+<div class="history-tab">
+  <h3 class="fw-bold mb-3 text-success">Grade History</h3>
+
+  <!-- Shared states with grades tab -->
+  <!-- Loading state -->
+  <div *ngIf="gradesLoading" class="text-center py-5">
+    <div class="spinner-border text-success mb-3" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-muted">Loading your grade history...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="gradesError" class="alert alert-danger">
+    <div class="fw-bold">Error loading grades:</div>
+    <p>{{ gradesError }}</p>
+    <button class="btn btn-sm btn-outline-danger mt-2" (click)="loadGrades()">
+      Retry
+    </button>
+  </div>
+
+  <!-- Empty state -->
+  <div
+    *ngIf="!gradesLoading && !gradesError && grades.length === 0"
+    class="text-center py-5"
+  >
+    <div class="text-muted">
+      <div class="fs-1 mb-3">📚</div>
+      <p class="lead">No grade history available yet.</p>
+      <button
+        class="btn btn-sm btn-outline-success mt-2"
+        (click)="loadGrades()"
+      >
+        Refresh History
+      </button>
+    </div>
+  </div>
+
+  <!-- History content -->
+  <div *ngIf="!gradesLoading && !gradesError && grades.length > 0">
+    <div
+      class="timeline-header d-flex justify-content-between align-items-center mb-3"
+    >
+      <div>
+        <span class="badge bg-success me-2">{{ grades.length }}</span>
+        <span class="text-muted">total grades</span>
+      </div>
+      <button class="btn btn-sm btn-outline-success" (click)="loadGrades()">
+        <span class="me-1">↻</span> Refresh
+      </button>
+    </div>
+
+    <div class="timeline">
+      <!-- Group by date -->
+      <div
+        *ngFor="let dateGroup of getGradeHistory(); let i = index"
+        class="timeline-item mb-4"
+      >
+        <div class="timeline-date mb-2">
+          <span class="badge bg-light text-dark">{{ dateGroup.date }}</span>
+          <small class="text-muted ms-2">{{
+            getRelativeDate(dateGroup.grades[0].createdAt)
+          }}</small>
+        </div>
+
+        <!-- Each grade in the date group -->
+        <div
+          *ngFor="let grade of dateGroup.grades"
+          class="timeline-card card mb-3 border-start border-success border-3"
+        >
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h5 class="card-title mb-0">{{ grade.assignment.title }}</h5>
+                <div class="text-muted small">
+                  {{ grade.assignment.class.course.name }} •
+                  <span class="badge bg-secondary">{{
+                    grade.assignment.assignmentType.name
+                  }}</span>
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="grade-display">
+                  <!-- Find previous grade version if any -->
+                  <ng-container *ngLet="findPreviousGrade(grade) as prevGrade">
+                    <div
+                      *ngIf="prevGrade"
+                      class="d-flex align-items-center small mb-1"
+                    >
+                      <span class="text-muted me-2">Previous:</span>
+                      <span
+                        >{{ prevGrade.points }}/{{
+                          prevGrade.assignment.maxPoints
+                        }}</span
+                      >
+                      <span class="ms-1"
+                        >({{
+                          calculatePercentage(
+                            prevGrade.points,
+                            prevGrade.assignment.maxPoints
+                          )
+                        }}%)</span
+                      >
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                      <span class="fs-5 fw-bold"
+                        >{{ grade.points }}/{{
+                          grade.assignment.maxPoints
+                        }}</span
+                      >
+                      <span class="ms-2"
+                        >({{
+                          calculatePercentage(
+                            grade.points,
+                            grade.assignment.maxPoints
+                          )
+                        }}%)</span
+                      >
+
+                      <!-- Show change indicator if there's a previous grade -->
+                      <div
+                        *ngIf="prevGrade"
+                        class="ms-2"
+                        [ngClass]="
+                          getChangeColorClass(grade.points, prevGrade.points)
+                        "
+                      >
+                        <span *ngIf="grade.points > prevGrade.points">▲</span>
+                        <span *ngIf="grade.points < prevGrade.points">▼</span>
+                        <span *ngIf="grade.points === prevGrade.points">◆</span>
+                        <span class="ms-1"
+                          >{{ grade.points - prevGrade.points }}
+                          points</span
+                        >
+                      </div>
+                    </div>
+                  </ng-container>
+
+                  <!-- If no previous grade -->
+                  <div *ngIf="!findPreviousGrade(grade)" class="fs-5 fw-bold">
+                    {{ grade.points }}/{{ grade.assignment.maxPoints }}
+                    <span class="ms-2"
+                      >({{
+                        calculatePercentage(
+                          grade.points,
+                          grade.assignment.maxPoints
+                        )
+                      }}%)</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grade details -->
+            <div class="row g-3 mt-1">
+              <!-- Left column -->
+              <div class="col-md-8">
+                <div class="mb-3">
+                  <h6 class="fw-bold mb-1">Description</h6>
+                  <p class="mb-0">
+                    {{
+                      grade.assignment.description || "No description available"
+                    }}
+                  </p>
+                </div>
+
+                <div *ngIf="grade.comment" class="mb-3">
+                  <h6 class="fw-bold mb-1">Feedback</h6>
+                  <div class="feedback-box p-2 bg-light rounded">
+                    {{ grade.comment }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right column -->
+              <div class="col-md-4">
+                <div class="grade-meta bg-light p-3 rounded">
+                  <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Graded by:</span>
+                    <span
+                      >{{ grade.grader.firstName }}
+                      {{ grade.grader.lastName }}</span
+                    >
+                  </div>
+
+                  <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Due date:</span>
+                    <span>{{ formatDate(grade.assignment.dueDate) }}</span>
+                  </div>
+
+                  <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Created:</span>
+                    <span
+                      >{{ formatDate(grade.createdAt) }}
+                      {{ formatTime(grade.createdAt) }}</span
+                    >
+                  </div>
+
+                  <div
+                    *ngIf="grade.updatedAt !== grade.createdAt"
+                    class="d-flex justify-content-between mb-2"
+                  >
+                    <span class="text-muted">Updated:</span>
+                    <span
+                      >{{ formatDate(grade.updatedAt) }}
+                      {{ formatTime(grade.updatedAt) }}</span
+                    >
+                  </div>
+
+                  <div class="d-flex align-items-center mt-3">
+                    <div class="progress flex-grow-1" style="height: 8px">
+                      <div
+                        class="progress-bar"
+                        [ngClass]="{
+                          'bg-danger':
+                            calculatePercentage(
+                              grade.points,
+                              grade.assignment.maxPoints
+                            ) < 60,
+                          'bg-warning':
+                            calculatePercentage(
+                              grade.points,
+                              grade.assignment.maxPoints
+                            ) >= 60 &&
+                            calculatePercentage(
+                              grade.points,
+                              grade.assignment.maxPoints
+                            ) < 80,
+                          'bg-success':
+                            calculatePercentage(
+                              grade.points,
+                              grade.assignment.maxPoints
+                            ) >= 80
+                        }"
+                        [style.width.%]="
+                          calculatePercentage(
+                            grade.points,
+                            grade.assignment.maxPoints
+                          )
+                        "
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

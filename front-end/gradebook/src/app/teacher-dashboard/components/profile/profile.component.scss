@@ -1,0 +1,22 @@
+/* Import shared dashboard styles */
+@use "../../styles/dashboard-shared.scss";
+
+/* Profile component specific styles */
+:host {
+  display: block;
+}
+
+.profile-section {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.read-only-field {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.update-button {
+  margin-top: 1.5rem;
+}

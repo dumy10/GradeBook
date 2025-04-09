@@ -132,6 +132,8 @@ describe('GradeManagementComponent', () => {
     endDate: '2025-05-20',
     createdAt: '2024-12-15',
     updatedAt: '2024-12-15',
+    className: 'Mathematics 101',
+    description: 'Introduction to College Mathematics',
   } as Class;
 
   beforeEach(async () => {

@@ -164,6 +164,8 @@ describe('TeacherDashboardComponent', () => {
       'searchStudents',
       'addStudentToClass',
       'removeStudentFromClass',
+      'getAllCourses',
+      'createClass',
     ]);
     gradeServiceSpy = jasmine.createSpyObj('GradeService', [
       'getGradesByClass',
@@ -216,6 +218,22 @@ describe('TeacherDashboardComponent', () => {
     classServiceSpy.searchClasses.and.returnValue(of([mockClass]));
     classServiceSpy.getStudentsInClass.and.returnValue(of(mockStudents));
     classServiceSpy.searchStudents.and.returnValue(of(mockStudents));
+    classServiceSpy.getAllCourses.and.returnValue(
+      of([
+        {
+          courseId: 101,
+          courseName: 'Introduction to Programming',
+          courseCode: 'CS101',
+          description: 'Learn the basics of programming',
+        },
+        {
+          courseId: 202,
+          courseName: 'Advanced Data Structures',
+          courseCode: 'CS202',
+          description: 'Complex algorithms and data structures',
+        },
+      ])
+    );
 
     // Default grade service responses
     gradeServiceSpy.getGradesByClass.and.returnValue(of(mockGrades));

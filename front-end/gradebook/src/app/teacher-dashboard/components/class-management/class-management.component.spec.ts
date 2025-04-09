@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { Class, Student } from '../../../services/class.service';
+import { Class, Course, Student } from '../../../services/class.service';
 import { ClassManagementComponent } from './class-management.component';
 
 describe('ClassManagementComponent', () => {
@@ -13,6 +13,8 @@ describe('ClassManagementComponent', () => {
     {
       classId: 1,
       courseId: 101,
+      className: 'Introduction to Programming',
+      description: 'Basic programming class',
       semester: '1',
       academicYear: '2023',
       startDate: '2023-01-15',
@@ -23,12 +25,29 @@ describe('ClassManagementComponent', () => {
     {
       classId: 2,
       courseId: 202,
+      className: 'Advanced Data Structures',
+      description: 'Complex data structures class',
       semester: '1',
       academicYear: '2023',
       startDate: '2023-01-15',
       endDate: '2023-05-15',
       createdAt: '2022-12-01',
       updatedAt: '2022-12-01',
+    },
+  ];
+
+  const mockCourses: Course[] = [
+    {
+      courseId: 101,
+      courseName: 'Introduction to Programming',
+      courseCode: 'CS101',
+      description: 'Learn the basics of programming',
+    },
+    {
+      courseId: 202,
+      courseName: 'Advanced Data Structures',
+      courseCode: 'CS202',
+      description: 'Complex algorithms and data structures',
     },
   ];
 
@@ -59,6 +78,7 @@ describe('ClassManagementComponent', () => {
 
     // Set initial component input properties
     component.classes = [...mockClasses];
+    component.courses = [...mockCourses];
     component.searchResults = [];
     component.studentsInClass = [];
 
@@ -69,13 +89,52 @@ describe('ClassManagementComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should display classes in the list', () => {
+  // Tests for course map and related methods
+  it('should update courseMap when courses change', () => {
+    // Check if courseMap is properly initialized
+    expect(component.courseMap[101].name).toBe('Introduction to Programming');
+    expect(component.courseMap[101].code).toBe('CS101');
+    expect(component.courseMap[202].name).toBe('Advanced Data Structures');
+    expect(component.courseMap[202].code).toBe('CS202');
+  });
+
+  it('should get course name correctly', () => {
+    expect(component.getCourseName(101)).toBe('Introduction to Programming');
+    expect(component.getCourseName(202)).toBe('Advanced Data Structures');
+    expect(component.getCourseName(999)).toBe('Course 999'); // Non-existent course
+  });
+
+  it('should get course code correctly', () => {
+    expect(component.getCourseCode(101)).toBe('CS101');
+    expect(component.getCourseCode(202)).toBe('CS202');
+    expect(component.getCourseCode(999)).toBe(''); // Non-existent course
+  });
+
+  it('should get course description correctly', () => {
+    expect(component.getCourseDescription(101)).toBe(
+      'Learn the basics of programming'
+    );
+    expect(component.getCourseDescription(202)).toBe(
+      'Complex algorithms and data structures'
+    );
+    expect(component.getCourseDescription(999)).toBe(''); // Non-existent course
+  });
+
+  it('should display classes in the list with course details', () => {
     const classElements = fixture.debugElement.queryAll(
       By.css('.list-group-item')
     );
     expect(classElements.length).toBe(2);
-    expect(classElements[0].nativeElement.textContent).toContain('101');
-    expect(classElements[1].nativeElement.textContent).toContain('202');
+
+    // Check if course names and codes are displayed
+    expect(classElements[0].nativeElement.textContent).toContain(
+      'Introduction to Programming'
+    );
+    expect(classElements[0].nativeElement.textContent).toContain('CS101');
+    expect(classElements[1].nativeElement.textContent).toContain(
+      'Advanced Data Structures'
+    );
+    expect(classElements[1].nativeElement.textContent).toContain('CS202');
   });
 
   it('should emit searchClassesEvent when searching classes', () => {

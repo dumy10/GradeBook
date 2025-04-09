@@ -1,7 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Class, Student, Course } from '../../../services/class.service';
+import { Class, Course, Student } from '../../../services/class.service';
 
 @Component({
   selector: 'app-class-management',
@@ -30,11 +38,18 @@ export class ClassManagementComponent implements OnInit, OnChanges {
   @Output() openCreateClassModal = new EventEmitter<void>();
 
   // Map of course IDs to course data
-  courseMap: {[id: number]: {name: string, code: string, description: string}} = {};
+  courseMap: {
+    [id: number]: { name: string; code: string; description: string };
+  } = {};
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Initialize the courseMap when the component is created
+    if (this.courses && this.courses.length > 0) {
+      this.updateCourseMap();
+    }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     // When courses change, update the course map
@@ -46,25 +61,26 @@ export class ClassManagementComponent implements OnInit, OnChanges {
   // Update courseMap when courses are loaded
   private updateCourseMap(): void {
     this.courseMap = {};
-    this.courses.forEach(course => {
+    this.courses.forEach((course) => {
       this.courseMap[course.courseId] = {
         name: course.courseName,
         code: course.courseCode,
-        description: course.description
+        description: course.description,
       };
     });
+    console.log('CourseMap updated:', this.courseMap);
   }
 
   // Get course name by ID
   getCourseName(courseId: number): string {
     return this.courseMap[courseId]?.name || `Course ${courseId}`;
   }
-  
+
   // Get course code by ID
   getCourseCode(courseId: number): string {
     return this.courseMap[courseId]?.code || '';
   }
-  
+
   // Get course description by ID
   getCourseDescription(courseId: number): string {
     return this.courseMap[courseId]?.description || '';

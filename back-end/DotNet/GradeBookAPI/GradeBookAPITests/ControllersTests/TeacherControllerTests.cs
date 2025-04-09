@@ -230,8 +230,8 @@ namespace GradeBookAPITests.ControllersTests
             var result = await _controller.CreateClass(request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal("Class created successfully.", okResult.Value);
+            var okResult = Assert.IsType<OkResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
         }
 
         [Fact]

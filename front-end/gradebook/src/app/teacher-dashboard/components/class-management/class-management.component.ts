@@ -36,6 +36,7 @@ export class ClassManagementComponent implements OnInit, OnChanges {
   @Output() addStudentToClassEvent = new EventEmitter<Student>();
   @Output() removeStudentFromClassEvent = new EventEmitter<Student>();
   @Output() openCreateClassModal = new EventEmitter<void>();
+  @Output() openCreateAssignmentModal = new EventEmitter<void>();
 
   // Map of course IDs to course data
   courseMap: {

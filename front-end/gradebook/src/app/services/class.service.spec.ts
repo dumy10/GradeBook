@@ -76,6 +76,8 @@ describe('ClassService', () => {
           endDate: '2025-05-15',
           createdAt: '2024-12-01',
           updatedAt: '2024-12-01',
+          className: 'Calculus I',
+          description: 'Introduction to calculus and analytical geometry',
         },
       ];
 
@@ -101,6 +103,8 @@ describe('ClassService', () => {
           endDate: '2025-05-15',
           createdAt: '2024-12-01',
           updatedAt: '2024-12-01',
+          className: 'Calculus I',
+          description: 'Introduction to calculus and analytical geometry',
         },
       ];
       const searchTerm = 'Spring';
@@ -129,6 +133,8 @@ describe('ClassService', () => {
           endDate: '2025-05-15',
           createdAt: '2024-12-01',
           updatedAt: '2024-12-01',
+          className: 'Calculus I',
+          description: 'Introduction to calculus and analytical geometry',
         },
         {
           classId: 2,
@@ -139,6 +145,8 @@ describe('ClassService', () => {
           endDate: '2025-12-15',
           createdAt: '2025-06-01',
           updatedAt: '2025-06-01',
+          className: 'Physics I',
+          description: 'Fundamentals of physics and mechanics',
         },
       ];
 

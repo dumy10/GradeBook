@@ -360,7 +360,7 @@ namespace GradeBookAPI.Controllers
             successLog.Details = JsonSerializer.Serialize(new { message = "Class created successfully" });
             successLog.CreatedAt = DateTime.UtcNow;
             GradeLogger.Instance.LogMessage(successLog);
-            return Ok("Class created successfully.");
+            return Ok();
         }
 
         // GET api/Teacher/classes

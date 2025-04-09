@@ -14,12 +14,31 @@ export interface Student {
 export interface Class {
   classId: number;
   courseId: number;
+  className: string;
+  description: string;
   semester: string;
   academicYear: string;
   startDate: string;
   endDate: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateClassRequest {
+  courseId: number;
+  className: string;
+  description: string;
+  semester: string;
+  academicYear: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface Course {
+  courseId: number;
+  courseName: string;
+  courseCode: string;
+  description: string;
 }
 
 @Injectable({
@@ -67,5 +86,13 @@ export class ClassService {
     return this.http.get<Student[]>(
       `${this.apiUrl}/api/Teacher/classes/${classId}/students`
     );
+  }
+
+  createClass(classData: CreateClassRequest): Observable<Class> {
+    return this.http.post<Class>(`${this.apiUrl}/api/Teacher/classes`, classData);
+  }
+
+  getAllCourses(): Observable<Course[]> {
+    return this.http.get<Course[]>(`${this.apiUrl}/api/Teacher/courses`);
   }
 }

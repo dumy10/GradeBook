@@ -1,7 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Class, Student } from '../../../services/class.service';
+import { Class, Student, Course } from '../../../services/class.service';
 import {
   Assignment,
   CreateGradeRequest,
@@ -16,7 +24,7 @@ import {
   templateUrl: './grade-management.component.html',
   styleUrl: './grade-management.component.scss',
 })
-export class GradeManagementComponent implements OnInit {
+export class GradeManagementComponent implements OnInit, OnChanges {
   @Input() selectedClass: Class | null = null;
   @Input() studentsInClass: Student[] = [];
   @Input() grades: Grade[] = [];
@@ -36,6 +44,7 @@ export class GradeManagementComponent implements OnInit {
   @Input() showBulkGradeModal = false;
   @Input() showGradeUploadModal = false;
   @Input() showHistoryView = false;
+  @Input() courses: Course[] = [];
 
   // Bulk grading inputs
   @Input() bulkGradeForm: any = {
@@ -117,9 +126,46 @@ export class GradeManagementComponent implements OnInit {
   @Output() checkPointsRangeEvent = new EventEmitter();
   @Output() checkEditPointsRangeEvent = new EventEmitter();
 
+  // Map of course IDs to course data
+  courseMap: {[id: number]: {name: string, code: string, description: string}} = {};
+
   constructor() {}
 
   ngOnInit(): void {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // When courses change, update the course map
+    if (changes['courses'] && this.courses) {
+      this.updateCourseMap();
+    }
+  }
+
+  // Update courseMap when courses are loaded
+  private updateCourseMap(): void {
+    this.courseMap = {};
+    this.courses.forEach(course => {
+      this.courseMap[course.courseId] = {
+        name: course.courseName,
+        code: course.courseCode,
+        description: course.description
+      };
+    });
+  }
+
+  // Get course name by ID
+  getCourseName(courseId: number): string {
+    return this.courseMap[courseId]?.name || `Course ${courseId}`;
+  }
+  
+  // Get course code by ID
+  getCourseCode(courseId: number): string {
+    return this.courseMap[courseId]?.code || '';
+  }
+  
+  // Get course description by ID
+  getCourseDescription(courseId: number): string {
+    return this.courseMap[courseId]?.description || '';
+  }
 
   // Methods that emit events to parent component
   selectStudentForGrades(student: Student | null): void {

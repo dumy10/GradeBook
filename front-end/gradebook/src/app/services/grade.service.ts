@@ -114,24 +114,24 @@ export class GradeService {
           }
 
           // Only log detailed error info for non-404 errors
-          console.error('Error in GradeService.getStudentGrades:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
-
-          // Provide more context in the error
-          if (error.status === 0) {
+        console.error('Error in GradeService.getStudentGrades:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.message);
+        
+        // Provide more context in the error
+        if (error.status === 0) {
             error.message =
               'Could not connect to the server. Please check that the API is running.';
-          } else if (error.status === 401) {
-            error.message = 'Authentication failed. Please log in again.';
-          } else if (error.status === 403) {
+        } else if (error.status === 401) {
+          error.message = 'Authentication failed. Please log in again.';
+        } else if (error.status === 403) {
             error.message =
               'You do not have permission to access this resource.';
-          }
-
-          return throwError(() => error);
-        })
-      );
+        }
+        
+        return throwError(() => error);
+      })
+    );
   }
 
   // Get grades for a specific class

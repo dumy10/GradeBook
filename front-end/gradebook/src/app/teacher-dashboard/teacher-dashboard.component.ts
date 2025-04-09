@@ -7,7 +7,7 @@ import {
   PasswordChangeRequest,
   ProfileUpdateRequest,
 } from '../services/auth.service';
-import { Class, ClassService, Student } from '../services/class.service';
+import { Class, ClassService, Student, CreateClassRequest, Course } from '../services/class.service';
 import {
   Assignment,
   CreateGradeRequest,
@@ -64,7 +64,7 @@ export class TeacherDashboardComponent implements OnInit {
   searchStudentTerm: string = '';
   searchClassTerm: string = '';
   searchResults: Student[] = [];
-
+  
   // Combined grade management
   grades: Grade[] = [];
   gradesForClass: Grade[] = [];
@@ -154,8 +154,21 @@ export class TeacherDashboardComponent implements OnInit {
     comment: '',
   };
 
+  // Create Class modal
+  showCreateClassModal = false;
+  newClass: CreateClassRequest = {
+    courseId: 0,
+    className: '',
+    description: '',
+    semester: '',
+    academicYear: '',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0]
+  };
+  courses: Course[] = [];
+
   constructor(
-    private authService: AuthService,
+    private authService: AuthService, 
     private router: Router,
     private classService: ClassService,
     private gradeService: GradeService
@@ -198,6 +211,9 @@ export class TeacherDashboardComponent implements OnInit {
 
     // Load classes when component initializes
     this.searchClasses('');
+    
+    // Load courses for dropdown
+    this.loadCourses();
   }
 
   /**
@@ -274,11 +290,11 @@ export class TeacherDashboardComponent implements OnInit {
         this.isLoading = false;
 
         // Reset form
-        this.passwordData = {
-          currentPassword: '',
-          newPassword: '',
+          this.passwordData = {
+            currentPassword: '',
+            newPassword: '',
           confirmPassword: '',
-        };
+          };
       },
       error: (error) => {
         this.errorMessage =
@@ -308,7 +324,7 @@ export class TeacherDashboardComponent implements OnInit {
       this.searchResults = [];
       return;
     }
-
+    
     this.classLoading = true;
     this.classService.searchStudents(this.searchStudentTerm).subscribe({
       next: (students) => {
@@ -376,12 +392,12 @@ export class TeacherDashboardComponent implements OnInit {
 
   addStudentToClass(student: Student): void {
     if (!this.selectedClass) return;
-
+    
     this.classLoading = true;
     this.classService
       .addStudentToClass(this.selectedClass.classId, student.userId)
       .subscribe({
-        next: () => {
+      next: () => {
           // Add student to local list
           this.studentsInClass = [...this.studentsInClass, student];
 
@@ -395,13 +411,13 @@ export class TeacherDashboardComponent implements OnInit {
 
           this.successMessage = `Added ${student.firstName} ${student.lastName} to class`;
           this.classLoading = false;
-        },
-        error: (error) => {
+      },
+      error: (error) => {
           this.errorMessage =
             error?.error?.message || 'Failed to add student to class';
-          this.classLoading = false;
+        this.classLoading = false;
         },
-      });
+    });
   }
 
   removeStudentFromClass(student: Student): void {
@@ -409,14 +425,14 @@ export class TeacherDashboardComponent implements OnInit {
       this.errorMessage = 'No class selected';
       return;
     }
-
+    
     // Debug the student object to see its structure
     console.log('Student object to remove:', student);
-
+    
     // Extract and verify the student ID
     const studentId = student.userId;
     console.log('Student ID to be removed:', studentId);
-
+    
     if (
       studentId === undefined ||
       studentId === null ||
@@ -426,20 +442,20 @@ export class TeacherDashboardComponent implements OnInit {
       this.errorMessage = 'Invalid student ID';
       return;
     }
-
+    
     const classId = this.selectedClass.classId;
     if (classId === undefined || classId === null || isNaN(Number(classId))) {
       this.errorMessage = 'Invalid class ID';
       return;
     }
-
+    
     if (
       confirm(
         `Are you sure you want to remove ${student.firstName} ${student.lastName} from this class?`
       )
     ) {
       this.classLoading = true;
-
+      
       this.classService.removeStudentFromClass(classId, studentId).subscribe({
         next: () => {
           // Remove from local list
@@ -1261,6 +1277,119 @@ export class TeacherDashboardComponent implements OnInit {
           error?.error?.message || 'Failed to add quick grades';
         this.gradeLoading = false;
       },
+    });
+  }
+
+  // Open create class modal
+  openCreateClassModal(): void {
+    // Reset form with default values
+    const today = new Date();
+    const nextYear = new Date();
+    nextYear.setFullYear(today.getFullYear() + 1);
+    
+    this.newClass = {
+      courseId: 0,
+      className: '',
+      description: '',
+      semester: '1',
+      academicYear: `${today.getFullYear()}-${today.getFullYear() + 1}`,
+      startDate: today.toISOString().split('T')[0],
+      endDate: nextYear.toISOString().split('T')[0]
+    };
+    
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.showCreateClassModal = true;
+    
+    // Make sure courses are loaded
+    if (this.courses.length === 0) {
+      this.loadCourses();
+    }
+  }
+
+  // Close create class modal
+  closeCreateClassModal(): void {
+    this.showCreateClassModal = false;
+  }
+
+  // Get min date for end date based on start date
+  getMinEndDate(): string {
+    return this.newClass.startDate;
+  }
+
+  // Handle course selection
+  onCourseSelect(courseId: number, courseName: string): void {
+    this.newClass.courseId = courseId;
+    this.newClass.className = courseName;
+  }
+
+  // Validate and create a new class
+  createClass(): void {
+    // Validation
+    if (!this.newClass.courseId || this.newClass.courseId <= 0) {
+      this.errorMessage = 'Please select a course';
+      return;
+    }
+    
+    if (!this.newClass.className || this.newClass.className.trim() === '') {
+      this.errorMessage = 'Class Name is required';
+      return;
+    }
+    
+    if (!this.newClass.semester || this.newClass.semester.trim() === '') {
+      this.errorMessage = 'Semester is required';
+      return;
+    }
+    
+    // Validate semester
+    if (this.newClass.semester !== '1' && this.newClass.semester !== '2') {
+      this.errorMessage = 'Semester must be 1 or 2';
+      return;
+    }
+    
+    if (!this.newClass.academicYear || this.newClass.academicYear.trim() === '') {
+      this.errorMessage = 'Academic Year is required';
+      return;
+    }
+    
+    // Check if start date is before end date
+    const startDate = new Date(this.newClass.startDate);
+    const endDate = new Date(this.newClass.endDate);
+    
+    if (startDate > endDate) {
+      this.errorMessage = 'Start Date cannot be after End Date';
+      return;
+    }
+    
+    this.classLoading = true;
+    this.errorMessage = '';
+    
+    this.classService.createClass(this.newClass).subscribe({
+      next: (newClass: Class) => {
+        this.successMessage = `Class "${this.newClass.className}" created successfully!`;
+        this.showCreateClassModal = false;
+        this.classLoading = false;
+        
+        // Refresh the classes list
+        this.searchClasses('');
+      },
+      error: (error: any) => {
+        this.errorMessage = error?.error?.message || 'Failed to create class';
+        this.classLoading = false;
+      }
+    });
+  }
+
+  // Load courses for dropdown
+  loadCourses(): void {
+    this.classService.getAllCourses().subscribe({
+      next: (courses) => {
+        this.courses = courses;
+        console.log('Loaded courses:', courses);
+      },
+      error: (error) => {
+        console.error('Error loading courses:', error);
+      }
     });
   }
 }

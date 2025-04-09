@@ -14,6 +14,7 @@ import {
   Grade,
   GradeService,
   UpdateGradeRequest,
+  CreateAssignmentRequest,
 } from '../services/grade.service';
 
 // Import standalone components
@@ -166,6 +167,20 @@ export class TeacherDashboardComponent implements OnInit {
     endDate: new Date().toISOString().split('T')[0]
   };
   courses: Course[] = [];
+
+  // Create Assignment modal
+  showCreateAssignmentModal = false;
+  newAssignment: CreateAssignmentRequest = {
+    classId: 0,
+    title: '',
+    description: '',
+    maxPoints: 100,
+    minPoints: 0,
+    dueDate: new Date().toISOString().split('T')[0],
+    typeName: '',
+    weight: 1
+  };
+  assignmentTypes: string[] = ['Exam', 'Quiz', 'Homework', 'Project', 'Lab', 'Midterm', 'Final', 'Other'];
 
   constructor(
     private authService: AuthService, 
@@ -1391,5 +1406,95 @@ export class TeacherDashboardComponent implements OnInit {
         console.error('Error loading courses:', error);
       }
     });
+  }
+
+  // Assignment Creation Methods
+  openCreateAssignmentModal(): void {
+    // Get current date with time set to current hour and minute, but without seconds
+    const now = new Date();
+    const formattedDate = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0') + 'T' + 
+                          String(now.getHours()).padStart(2, '0') + ':' + 
+                          String(now.getMinutes()).padStart(2, '0');
+    
+    // Reset form
+    this.newAssignment = {
+      classId: this.selectedClass ? this.selectedClass.classId : 0,
+      title: '',
+      description: '',
+      maxPoints: 100,
+      minPoints: 0,
+      dueDate: formattedDate,
+      typeName: '',
+      weight: 1
+    };
+    
+    this.errorMessage = '';
+    this.showCreateAssignmentModal = true;
+  }
+
+  closeCreateAssignmentModal(): void {
+    this.showCreateAssignmentModal = false;
+    this.errorMessage = '';
+  }
+
+  getMinDueDate(): string {
+    // Format the current date and time in the format expected by datetime-local
+    const now = new Date();
+    return now.getFullYear() + '-' + 
+           String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+           String(now.getDate()).padStart(2, '0') + 'T' + 
+           String(now.getHours()).padStart(2, '0') + ':' + 
+           String(now.getMinutes()).padStart(2, '0');
+  }
+
+  createAssignment(): void {
+    if (!this.newAssignment.classId || !this.newAssignment.title || !this.newAssignment.typeName) {
+      this.errorMessage = 'Please fill in all required fields.';
+      return;
+    }
+
+    this.classLoading = true;
+    this.errorMessage = '';
+
+    // Create a copy of the assignment data to avoid modifying the form
+    const assignmentData = {...this.newAssignment};
+
+    // Convert the date to a proper UTC format
+    if (assignmentData.dueDate) {
+      // Create a proper UTC date, ensuring Kind=UTC for PostgreSQL
+      const dueDate = new Date(assignmentData.dueDate);
+      // Convert to ISO string which is UTC format
+      assignmentData.dueDate = dueDate.toISOString();
+    }
+
+    this.gradeService.createAssignment(assignmentData)
+      .subscribe({
+        next: (assignment) => {
+          this.classLoading = false;
+          this.showCreateAssignmentModal = false;
+          
+          // Add the new assignment to the assignments list
+          this.assignments.push(assignment);
+          
+          // Refresh assignments for the selected class
+          if (this.selectedClass) {
+            this.loadAssignmentsForClass(this.selectedClass.classId);
+          }
+          
+          this.successMessage = 'Assignment created successfully!';
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        },
+        error: (error) => {
+          this.classLoading = false;
+          this.errorMessage = error.message || 'Failed to create assignment. Please try again.';
+          console.error('Error creating assignment:', error);
+        }
+      });
   }
 }

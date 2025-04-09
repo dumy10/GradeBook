@@ -92,6 +92,17 @@ export interface UpdateGradeRequest {
   comment: string;
 }
 
+export interface CreateAssignmentRequest {
+  classId: number;
+  title: string;
+  description: string;
+  maxPoints: number;
+  minPoints: number;
+  dueDate: string;
+  typeName: string;
+  weight: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -464,6 +475,24 @@ export class GradeService {
     const headers = this.authService.getAuthHeaders();
     return this.http
       .get<Grade[]>(`${this.API_URL}/Grade`, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  // Create a new assignment
+  createAssignment(request: CreateAssignmentRequest): Observable<Assignment> {
+    const headers = this.authService.getAuthHeaders();
+    
+    // Ensure numeric fields are numbers
+    const payload = {
+      ...request,
+      classId: Number(request.classId),
+      maxPoints: Number(request.maxPoints),
+      minPoints: Number(request.minPoints),
+      weight: Number(request.weight)
+    };
+
+    return this.http
+      .post<Assignment>(`${this.API_URL}/Assignment/create`, payload, { headers })
       .pipe(catchError(this.handleError));
   }
 

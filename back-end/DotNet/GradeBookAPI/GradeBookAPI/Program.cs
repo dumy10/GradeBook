@@ -1,5 +1,6 @@
 using DotNetEnv;
 using GradeBookAPI.Data;
+using GradeBookAPI.Services.BackgroundServices;
 using GradeBookAPI.Services.Concretes;
 using GradeBookAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,7 +13,7 @@ using System.Text;
 Env.Load();
 
 // Validate required environment variables
-var requiredEnvVars = new[] 
+var requiredEnvVars = new[]
 {
     "DB_HOST", "DB_PORT", "DB_NAME", "DB_USERNAME", "DB_PASSWORD",
     "JWT_SECRET", "JWT_ISSUER", "JWT_AUDIENCE", "JWT_EXPIRY_HOURS"
@@ -53,6 +54,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
+builder.Services.AddHostedService<DatabaseBackupHostedService>();
 
 // Add JWT Authentication with environment variables
 builder.Services.AddAuthentication(options =>

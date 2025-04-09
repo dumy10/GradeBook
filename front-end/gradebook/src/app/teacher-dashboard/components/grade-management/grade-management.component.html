@@ -32,8 +32,13 @@
             <p class="mb-2">
               <strong>Semester:</strong> {{ selectedClass.semester }}
             </p>
-            <p class="mb-2">
-              <strong>Course ID:</strong> {{ selectedClass.courseId }}
+            <p class="mb-2" title="{{ getCourseDescription(selectedClass.courseId) }}">
+              <strong>Course:</strong> 
+              <span class="badge bg-light-blue text-dark ms-1">{{ getCourseName(selectedClass.courseId) }}</span>
+              <small class="text-muted ms-1">({{ getCourseCode(selectedClass.courseId) }})</small>
+            </p>
+            <p class="mb-2 text-muted small" *ngIf="getCourseDescription(selectedClass.courseId)">
+              <i class="fas fa-info-circle me-1"></i> {{ getCourseDescription(selectedClass.courseId) }}
             </p>
           </div>
           <div class="col-md-4">

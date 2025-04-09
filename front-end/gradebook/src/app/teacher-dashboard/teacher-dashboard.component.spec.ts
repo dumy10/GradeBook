@@ -40,6 +40,8 @@ describe('TeacherDashboardComponent', () => {
   const mockClass: Class = {
     classId: 1,
     courseId: 1,
+    className: 'Math 101',
+    description: 'Introduction to Mathematics',
     semester: 'Fall',
     academicYear: '2023',
     startDate: '2023-09-01',

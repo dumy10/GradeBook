@@ -7,7 +7,7 @@
   margin-bottom: 0.75rem;
   border-radius: 8px;
   padding: 1rem;
-  transition: all 0.2s ease;
+  transition: all 0.1s ease-out;
 
   &:hover {
     background-color: rgba(59, 113, 202, 0.05);
@@ -18,6 +18,7 @@
     background-color: rgba(59, 113, 202, 0.9);
     border-color: #3b71ca;
     color: white;
+    transition: none;
 
     .text-muted {
       color: rgba(255, 255, 255, 0.8) !important;
@@ -65,24 +66,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: #f8f9fa;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: #f8f9fa;
+  border-radius: 0.25rem;
+  border-left: 4px solid #dee2e6;
+  
+  .student-info {
+    display: flex;
+    flex-direction: column;
+    
+    .student-name {
+      font-weight: 500;
+    }
+    
+    .student-email {
+      font-size: 0.875rem;
+      color: #6c757d;
+    }
   }
-
-  button {
-    margin-left: 10px;
-  }
-}
-
-.student-info {
-  display: flex;
-  flex-direction: column;
 }
 
 .student-name {
@@ -94,4 +96,22 @@
 .student-email {
   font-size: 0.85rem;
   color: #6c757d;
+}
+
+// Custom badge styling
+.bg-light-blue {
+  background-color: #e6f3ff !important;
+  border: 1px solid #b8daff;
+}
+
+// Add a subtle hover effect to class items
+.list-group-item-action:hover {
+  background-color: #f8f9fa;
+  border-left-color: #0d6efd;
+  transition: all 0.1s ease-out;
+}
+
+// Border left styles
+.border-left-primary {
+  border-left: 4px solid #0d6efd;
 }

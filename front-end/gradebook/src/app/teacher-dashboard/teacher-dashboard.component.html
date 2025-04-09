@@ -60,7 +60,7 @@
       >
       </app-profile>
     </div>
-
+    
     <!-- Change Password Tab using standalone component -->
     <div *ngIf="activeTab === 'password'" class="password-tab">
       <app-password-change
@@ -72,7 +72,7 @@
       >
       </app-password-change>
     </div>
-
+    
     <!-- Class Management Tab using standalone component -->
     <div *ngIf="activeTab === 'classes'" class="classes-tab">
       <app-class-management
@@ -85,28 +85,30 @@
         [classLoading]="classLoading"
         [successMessage]="successMessage"
         [errorMessage]="errorMessage"
+        [courses]="courses"
         (searchClassesEvent)="searchClasses($event)"
         (searchStudentsEvent)="searchStudents()"
         (selectClassEvent)="selectClass($event)"
         (addStudentToClassEvent)="addStudentToClass($event)"
         (removeStudentFromClassEvent)="removeStudentFromClass($event)"
+        (openCreateClassModal)="openCreateClassModal()"
       >
       </app-class-management>
     </div>
-
+    
     <!-- Grade Management Tab using standalone component -->
     <div *ngIf="activeTab === 'grades'" class="grade-management-tab">
       <app-grade-management
         [selectedClass]="selectedClass"
         [studentsInClass]="studentsInClass"
+        [selectedStudent]="selectedStudent"
+        [assignments]="assignments"
         [grades]="grades"
         [gradesForClass]="gradesForClass"
-        [selectedStudent]="selectedStudent"
-        [selectedGrade]="selectedGrade"
-        [assignments]="assignments"
-        [successMessage]="successMessage"
-        [errorMessage]="errorMessage"
         [gradeLoading]="gradeLoading"
+        [errorMessage]="errorMessage"
+        [successMessage]="successMessage"
+        [courses]="courses"
         [showGradeModal]="showGradeModal"
         [showEditGradeModal]="showEditGradeModal"
         [showDeleteConfirmation]="showDeleteConfirmation"
@@ -122,6 +124,7 @@
         [gradeUploadForm]="gradeUploadForm"
         [newGrade]="newGrade"
         [editGradeForm]="editGradeForm"
+        (loadGradesForClassEvent)="loadGradesForClass($event)"
         (selectStudentForGradesEvent)="selectStudentForGrades($event)"
         (openNewGradeModalEvent)="openNewGradeModal($event)"
         (closeNewGradeModalEvent)="closeNewGradeModal()"
@@ -147,7 +150,6 @@
         (applyDefaultValuesEvent)="applyDefaultValues()"
         (sortQuickGradesByNameEvent)="sortQuickGradesByName()"
         (submitQuickGradesEvent)="submitQuickGrades()"
-        (loadGradesForClassEvent)="loadGradesForClass($event)"
         (checkForExistingGradeEvent)="checkForExistingGrade()"
         (checkPointsRangeEvent)="checkPointsRange()"
         (checkEditPointsRangeEvent)="checkEditPointsRange()"
@@ -156,3 +158,80 @@
     </div>
   </div>
 </div>
+
+<!-- Create Class Modal -->
+<div *ngIf="showCreateClassModal" class="modal fade show" [class.d-block]="showCreateClassModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title">Create New Class</h5>
+        <button type="button" class="btn-close" (click)="closeCreateClassModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="errorMessage" class="alert alert-danger mb-3">
+          {{ errorMessage }}
+        </div>
+
+        <form>
+          <div class="mb-3">
+            <label for="courseSelect" class="form-label">Course <span class="text-danger">*</span></label>
+            <select class="form-select" id="courseSelect" [(ngModel)]="newClass.courseId" name="courseId" required>
+              <option [ngValue]="0" disabled>-- Select a Course --</option>
+              <option *ngFor="let course of courses" [ngValue]="course.courseId" (click)="onCourseSelect(course.courseId, course.courseName)">
+                {{ course.courseName }} ({{ course.courseCode }})
+              </option>
+            </select>
+            <small class="form-text text-muted">Select a course from the list</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="className" class="form-label">Class Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="className" [(ngModel)]="newClass.className" name="className" required>
+            <small class="form-text text-muted">Enter a descriptive name for this class</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" [(ngModel)]="newClass.description" name="description" rows="3"></textarea>
+            <small class="form-text text-muted">Optional: Provide details about this class</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="semester" class="form-label">Semester <span class="text-danger">*</span></label>
+            <select class="form-select" id="semester" [(ngModel)]="newClass.semester" name="semester" required>
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+            </select>
+            <small class="form-text text-muted">Select which semester this class belongs to</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="academicYear" class="form-label">Academic Year <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="academicYear" [(ngModel)]="newClass.academicYear" name="academicYear" required 
+                   placeholder="e.g. 2023-2024">
+            <small class="form-text text-muted">Format: YYYY-YYYY (e.g., 2023-2024)</small>
+          </div>
+          
+          <div class="mb-3">
+            <label for="startDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="startDate" [(ngModel)]="newClass.startDate" name="startDate" required>
+          </div>
+          
+          <div class="mb-3">
+            <label for="endDate" class="form-label">End Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="endDate" [(ngModel)]="newClass.endDate" name="endDate" required
+                   [min]="getMinEndDate()">
+            <small class="form-text text-muted">Must be on or after the start date</small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeCreateClassModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="createClass()" [disabled]="classLoading">
+          {{ classLoading ? 'Creating...' : 'Create Class' }}
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
+</div> 

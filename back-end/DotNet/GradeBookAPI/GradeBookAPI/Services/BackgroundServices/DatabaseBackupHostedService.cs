@@ -1,31 +1,37 @@
-﻿using GradeBookAPI.Services.Interfaces;
+﻿using GradeBookAPI.Entities;
+using GradeBookAPI.Services.Interfaces;
+using System.Text.Json;
+
+using GradeLogger = GradeBookAPI.Logger.Logger;
 
 namespace GradeBookAPI.Services.BackgroundServices
 {
-    public class DatabaseBackupHostedService : BackgroundService
+    public class DatabaseBackupHostedService(IServiceProvider serviceProvider) : BackgroundService
     {
-        private readonly ILogger<DatabaseBackupHostedService> _logger;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
         private Timer? _timer;
 
-        public DatabaseBackupHostedService(
-            ILogger<DatabaseBackupHostedService> logger,
-            IServiceProvider serviceProvider)
+        private AuditLog AuditLog => new()
         {
-            _logger = logger;
-            _serviceProvider = serviceProvider;
-        }
+            UserId = 1, // System
+            EntityType = "DatabaseBackup",
+            EntityId = 0,
+            Action = "BackgroundService",
+            Details = JsonSerializer.Serialize(new { message = "Database backup operation" }),
+            IpAddress = "localhost",
+            CreatedAt = DateTime.UtcNow
+        };
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Database Backup Service is starting.");
+            var startLog = AuditLog;
+            startLog.Action = "ExecuteAsync";
+            startLog.Details = JsonSerializer.Serialize(new { message = "Database Backup Service is starting." });
+            startLog.CreatedAt = DateTime.UtcNow;
+            GradeLogger.Instance.LogMessage(startLog);
 
-            // Schedule initial backup
-            //ScheduleNextBackup();
-
-            // TEST MODE: Run immediately instead of at 3 AM
-            _timer = new Timer(DoBackup, null, TimeSpan.FromSeconds(10), Timeout.InfiniteTimeSpan);
-
+            //Schedule initial backup
+            ScheduleNextBackup();
 
             return Task.CompletedTask;
         }
@@ -43,7 +49,12 @@ namespace GradeBookAPI.Services.BackgroundServices
             }
 
             var timeSpan = scheduledTime - now;
-            _logger.LogInformation($"Next database backup scheduled at: {scheduledTime}");
+
+            var scheduleLog = AuditLog;
+            scheduleLog.Action = "ScheduleNextBackup";
+            scheduleLog.Details = JsonSerializer.Serialize(new { message = $"Next database backup scheduled at: {scheduledTime}" });
+            scheduleLog.CreatedAt = DateTime.UtcNow;
+            GradeLogger.Instance.LogMessage(scheduleLog);
 
             // Dispose existing timer if any
             _timer?.Dispose();
@@ -54,7 +65,11 @@ namespace GradeBookAPI.Services.BackgroundServices
 
         private async void DoBackup(object? state)
         {
-            _logger.LogInformation("Starting scheduled database backup");
+            var startLog = AuditLog;
+            startLog.Action = "DoBackup";
+            startLog.Details = JsonSerializer.Serialize(new { message = "Starting scheduled database backup" });
+            startLog.CreatedAt = DateTime.UtcNow;
+            GradeLogger.Instance.LogMessage(startLog);
 
             try
             {
@@ -65,11 +80,19 @@ namespace GradeBookAPI.Services.BackgroundServices
 
                     if (result)
                     {
-                        _logger.LogInformation("Scheduled database backup completed successfully");
+                        var successLog = AuditLog;
+                        successLog.Action = "DoBackup";
+                        successLog.Details = JsonSerializer.Serialize(new { message = "Scheduled database backup completed successfully" });
+                        successLog.CreatedAt = DateTime.UtcNow;
+                        GradeLogger.Instance.LogMessage(successLog);
                     }
                     else
                     {
-                        _logger.LogError("Scheduled database backup failed");
+                        var failLog = AuditLog;
+                        failLog.Action = "DoBackup";
+                        failLog.Details = JsonSerializer.Serialize(new { message = "Scheduled database backup failed" });
+                        failLog.CreatedAt = DateTime.UtcNow;
+                        GradeLogger.Instance.LogError(failLog);
                     }
                 }
 
@@ -78,7 +101,11 @@ namespace GradeBookAPI.Services.BackgroundServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred during scheduled database backup");
+                var errorLog = AuditLog;
+                errorLog.Action = "DoBackup";
+                errorLog.Details = JsonSerializer.Serialize(new { message = "An error occurred during scheduled database backup", error = ex.Message });
+                errorLog.CreatedAt = DateTime.UtcNow;
+                GradeLogger.Instance.LogError(errorLog);
 
                 // If backup fails, try again in 1 hour
                 _timer?.Change(TimeSpan.FromHours(1), TimeSpan.FromHours(24));
@@ -87,7 +114,11 @@ namespace GradeBookAPI.Services.BackgroundServices
 
         public override Task StopAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Database Backup Service is stopping.");
+            var stopLog = AuditLog;
+            stopLog.Action = "StopAsync";
+            stopLog.Details = JsonSerializer.Serialize(new { message = "Database Backup Service is stopping." });
+            stopLog.CreatedAt = DateTime.UtcNow;
+            GradeLogger.Instance.LogMessage(stopLog);
 
             _timer?.Change(Timeout.Infinite, 0);
 
